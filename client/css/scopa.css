@@ -1,0 +1,129 @@
+html, body{height: 100%}
+#game{
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+body {
+    background: url("../images/background_table.jpg");
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+#playground{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+}
+#table {
+    width: 100%;
+    height: 190px;
+    margin: 0 auto;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    display : flex;
+    justify-content: center;
+}
+.table_card {
+    background-size: contain;
+    background-repeat: no-repeat;
+    border: solid 2px white;
+    border-radius: 10px;
+    width: 120px;
+    height: 200px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.8);
+    transition: 0.2s;
+    margin: 1%;
+}
+#hand {
+    align-items: flex-end;
+    justify-content: center;
+    position: absolute;
+    bottom: 0;
+    height: 200px;
+    width: 100%;
+    margin: 0 auto;
+    display : flex;
+}
+.card {
+    background-size: contain;
+    background-repeat: no-repeat;
+    border: solid 2px white;
+    border-radius: 10px;
+    width: 120px;
+    height: 200px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.8);
+    transition: 0.2s;
+    cursor: pointer;
+    margin: 1%;
+}
+.card:hover {
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,1);
+    animation: shake 1.2s;
+    /* When the animation is finished, start again */
+    animation-iteration-count: infinite;
+}
+#widnow{
+    width:250px;
+    height: 320px;
+    border:solid 1px;
+}
+#title_bar{
+    background: #FEFEFE;
+    height: 25px;
+    width: 100%;
+}
+#chat-widnow{
+    width:275px;
+    border:solid 1px;
+    position: fixed;
+    z-index: 1;
+}
+#title_bar{
+    background: #FEFEFE;
+    height: 25px;
+    width: 100%;
+}
+#chat-box{
+    height: 293px;
+    background: #DFDFDF;
+    display: block;
+}
+#title-button{
+    border:solid 1px;
+    width: 25px;
+    height: 25px;
+    float:right;
+    cursor:pointer;
+    text-align: center;
+}
+#chat-history{
+    resize: none;
+    font-size: 13px;
+}
+#chat-form{
+    margin-right: 5px;
+    margin-left: 5px;
+}
+#send,#title_bar{
+    text-align: center;
+}
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
