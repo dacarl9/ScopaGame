@@ -108,11 +108,11 @@ class ScopaLogic{
             a[a1[i]] = true;
         }
 
-        for (var i = 0; i < a2.length; i++) {
-            if (a[a2[i]]) {
-                delete a[a2[i]];
+        for (var j = 0; j < a2.length; j++) {
+            if (a[a2[j]]) {
+                delete a[a2[j]];
             } else {
-                a[a2[i]] = true;
+                a[a2[j]] = true;
             }
         }
 
