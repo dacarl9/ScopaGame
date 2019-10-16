@@ -32,6 +32,8 @@ class ScopaLogic{
         this.cardShufflerId = 1;
     }
 
+    // Erstellt anhand der aktuellen Spielsituation eine Message, welche anschliessend an einen Spieler gesendet wird.
+    // TODO: Hier müssen noch weitere Infos wie Spieler, Runden, Zeit ,.. gesetzt werden
     getGameStateMessage(){
         var _message = new Message(0);
         _message.tableCards = this.tableCards;
@@ -39,6 +41,8 @@ class ScopaLogic{
         return _message;
     }
 
+    // Spieler Nachricht verarbeiten. (Aktuell wird nur eine Karte vom Spieler gesendet)
+    // TODO: Ev. noch gebrauchte Zeit
     processPlayerMessage(message,aRoom){
         console.log('nachricht von spieler in logik empfangen: '+message.content);
         var _card = message.content;

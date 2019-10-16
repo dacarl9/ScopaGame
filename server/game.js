@@ -1,20 +1,10 @@
-var SERVER_MESSAGE = 0;
-var CHAT_MESSAGE = 1;
-var CLIENT_MESSAGE = 2;
-
+var MESSAGE_TYPE = {
+    SERVER_MESSAGE: 0,
+    CHAT_MESSAGE: 1,
+    CLIENT_MESSAGE: 2
+};
 var Message = require('./message').Message;
 var ScopaLogic = require('./scopaLogic').ScopaLogic;
-
-
-var scopaCards = [
-    "1_1","2_1","3_1","4_1","5_1","6_1","7_1","8_1","9_1","10_1",
-    "1_2","2_2","3_2","4_2","5_2","6_2","7_2","8_2","9_2","10_2",
-    "1_3","2_3","3_3","4_3","5_3","6_3","7_3","8_3","9_3","10_3",
-    "1_4","2_4","3_4","4_3","5_4","6_4","7_4","8_4","9_4","10_4"
-];
-
-var shuffledCards = [];
-
 var scopaLogic = null;
 
 
@@ -27,17 +17,21 @@ User.prototype.setName = function (name) {
     this.name = name;
 }
 
+
 function Room() {
     this.users = [];
 }
+
 // Person ins Spiel einloggen
 Room.prototype.addUser = function(user){
     this.users.push(user);
     var room = this;
 
+    // TODO: Pro Spiel eine Scopa Logik (diese Verwaltet jeweil ein Duell)
     scopaLogic = new ScopaLogic();
     scopaLogic.startGame();
 
+    // TODO: Spieler Registrierung --> Dann Spielinformationen senden...
     this.sendMessageData(user, room);
     this.sendGameData(user, room);
     this.handleOnUserMessage(user);
@@ -49,6 +43,8 @@ Room.prototype.addUser = function(user){
         room.removeUser(user);
     }
 };
+
+// Text Nahricht senden.
 Room.prototype.sendMessageData = function(user, room) {
     var _userDisplayName = user.id;
     if(user.name){
@@ -56,22 +52,16 @@ Room.prototype.sendMessageData = function(user, room) {
     }
     var message = "Wilkommen " + _userDisplayName+ " zu Scopa. Aktuell eingeloggte Spieler: " + room.users.length;
     var _data = {
-        messageType: CHAT_MESSAGE,
+        messageType: MESSAGE_TYPE.CHAT_MESSAGE,
         content: message
     };
     room.sendAll(JSON.stringify(_data));
 };
 
+// Spiel-Nachricht senden. (Karten auf Tisch/in der Hand,..)
 Room.prototype.sendGameData = function(user, room) {
     var _message = scopaLogic.getGameStateMessage();
-
-    var _gameData = {
-        messageType: SERVER_MESSAGE,
-        tableCards: _message.tableCards,
-        handCards: _message.playerCards
-    };
-
-    room.sendAll(JSON.stringify(_gameData));
+    room.sendAll(JSON.stringify(_message));
 };
 
 // Auf Client Nachrichten reagieren
@@ -90,7 +80,7 @@ Room.prototype.handleOnUserMessage = function(user) {
 
             var _content = _userDisplayName + " : " + _data.content;
 
-            var _message = new Message(CHAT_MESSAGE);
+            var _message = new Message(MESSAGE_TYPE.CHAT_MESSAGE);
             _message.content = _content;
 
             room.sendAll(JSON.stringify(_message));
