@@ -18,26 +18,24 @@ let endDate = new Date();
 let roundNumber = 1;
 
 $(function () {
-    $("#formPlayerName" ).submit(function( event ) {
-        startScopa()
-        event.preventDefault();
-    });
+    //TODO: Nach Deployment wieder einfügen
+    // $("#formPlayerName" ).submit(function( event ) {
+    //     startScopa()
+    //     event.preventDefault();
+    // });
 
-
-    /*$("#startGame").on("click",function(e) {
-       startScopa();
-    });*/
-
-
+    //TODO: Test1
+    startScopa();
 });
 
+// Spiel
 function startScopa() {
     $("#login").hide();
     $("#chat-widnow").css("display", "block");
 
     // Gleich zu Beginn die ID des Spielers setzen und speichern.
     this.playerId = create_UUID;
-    playerName = $("#userName").val();
+    playerName = $("#userName").val()!='' ?$("#userName").val():'unnamed';
     // Rendern des Chatfensters
     renderChatBox();
     websocket = {};
@@ -220,9 +218,11 @@ function handleTableCardFromMessage(aArrivedCards) {
         // gespielte Karte löschen.
         removeCard(lastPlayedCard);
     } else {
+        let _is10 = lastPlayedCard.length ===3;
+
         // Karte aus Hnad löschen
-        let _lastCardNumber = lastPlayedCard.charAt(0);
-        let _lastCardType = lastPlayedCard.charAt(2);
+        let _lastCardNumber = _is10 ?lastPlayedCard.charAt(0):lastPlayedCard.charAt(0)+lastPlayedCard.charAt(1);
+        let _lastCardType = _is10? lastPlayedCard.charAt(2): lastPlayedCard.charAt(3);
 
         removeCard(lastPlayedCard); //
         addCardToTable(_lastCardNumber, _lastCardType);

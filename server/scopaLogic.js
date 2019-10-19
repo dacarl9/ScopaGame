@@ -1,3 +1,5 @@
+//TODO: Vater hat gesagt mach eine kuuulee schriftrolle wo die spiu regu drin stöid
+
 scopaCards  = [
     "1_1","2_1","3_1","4_1","5_1","6_1","7_1","8_1","9_1","10_1",
     "1_2","2_2","3_2","4_2","5_2","6_2","7_2","8_2","9_2","10_2",
@@ -5,8 +7,8 @@ scopaCards  = [
     "1_4","2_4","3_4","4_3","5_4","6_4","7_4","8_4","9_4","10_4"
 ];
 
-let Message = require('./message').Message;
-let Combinatorics = require('./combinatorics');
+const Message = require('./message').Message;
+const Combinatorics = require('./combinatorics');
 
 class ScopaLogic{
     constructor(){
@@ -143,11 +145,14 @@ class ScopaLogic{
 
     // Gibt zurück ob sich die gleiche Karte einer anderen Farbe auf dem Tisch liegt
     checkCardNumberIsOnTable(aCard){
-        let cardNumber = aCard.charAt(0);
+        let cardNumber = aCard.length ===3 ?aCard.charAt(0):aCard.charAt(0)+ aCard.charAt(1);
         let choosableCards = []
 
         for (let tableCard in this.tableCards){
-            if(this.tableCards[tableCard].charAt(0) == cardNumber){
+            var _card = this.tableCards[tableCard];
+            var _tableCardNumber =  _card.length ===3 ?_card.charAt(0):_card.charAt(0)+ _card.charAt(1);
+            console.log("TABLECARDNUMBER: "+_tableCardNumber);
+            if(_tableCardNumber == cardNumber){
                 // Zu möglichen gleichen Karten hinzufügen
                 choosableCards.push(this.tableCards[tableCard]);
             }
@@ -157,8 +162,9 @@ class ScopaLogic{
 
     getPossibleCardCombinationWithCard(aCard){
         let _result = [];
-        let _cardValue = parseInt(aCard.charAt(0));
+        let _cardValue = parseInt(aCard.charAt(0)+aCard.charAt(1));
         let _allCombinations = this.getAllCardCombinations();
+        console.log("das sit der Wert der KArte: "+_cardValue)
 
         for (let combination in _allCombinations){
             let _combination = _allCombinations[combination];
@@ -211,13 +217,12 @@ class ScopaLogic{
             let _cardId = this.tableCards[tableCard];
             tableCardsWithValue.push({
                 cardId: _cardId,
-                cardValue: _cardId.charAt(0)
+                cardValue: _cardId.length === 3?_cardId.charAt(0):_cardId.charAt(0)+_cardId.charAt(1)
             });
         }
 
         return tableCardsWithValue;
     }
 }
-
 
 module.exports.ScopaLogic = ScopaLogic;
