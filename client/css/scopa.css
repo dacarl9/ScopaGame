@@ -3,6 +3,7 @@ html, body{height: 100%}
     position: relative;
     width: 100%;
     height: 100%;
+
 }
 body {
     background: url("../images/background_table.jpg");
@@ -84,6 +85,7 @@ body {
     border:solid 1px;
     position: fixed;
     z-index: 1;
+    display: none;
 }
 #title_bar{
     background: #FEFEFE;
@@ -113,6 +115,13 @@ body {
 }
 #send,#title_bar{
     text-align: center;
+}
+#nameSetter{
+    background: darkgray;
+    width: 275px;
+    height: 80px;
+    top: 50%;
+    left:50%;
 }
 @keyframes shake {
     0% { transform: translate(1px, 1px) rotate(0deg); }

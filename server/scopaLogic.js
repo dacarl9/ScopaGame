@@ -5,7 +5,8 @@ scopaCards  = [
     "1_4","2_4","3_4","4_3","5_4","6_4","7_4","8_4","9_4","10_4"
 ];
 
-var Message = require('./message').Message;
+let Message = require('./message').Message;
+let Combinatorics = require('./combinatorics');
 
 class ScopaLogic{
     constructor(){
@@ -35,7 +36,7 @@ class ScopaLogic{
     // Erstellt anhand der aktuellen Spielsituation eine Message, welche anschliessend an einen Spieler gesendet wird.
     // TODO: Hier müssen noch weitere Infos wie Spieler, Runden, Zeit ,.. gesetzt werden
     getGameStateMessage(){
-        var _message = new Message(0);
+        let _message = new Message(0);
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player1Cards;
         return _message;
@@ -45,16 +46,28 @@ class ScopaLogic{
     // TODO: Ev. noch gebrauchte Zeit
     processPlayerMessage(message,aRoom){
         console.log('nachricht von spieler in logik empfangen: '+message.content);
-        var _card = message.content;
+        let _card = message.content;
         // 1. Fall: Gleiche Karte
-        var sameCards = this.checkCardNumberIsOnTable(_card);
+        let sameCards = this.checkCardNumberIsOnTable(_card);
         // 2. Fall: Kombinationen zur Karte
+        let _cardCombinations = this.getPossibleCardCombinationWithCard(_card);
 
         // TODO nicht nur für gleiche Karten & nicht nur erste Karte
-        if(sameCards.length >0) {
+        if(sameCards.length > 0) {
             // TODO Karte zu Spieler Konto
             // Spieler kann Karte nehmen.
             this.removeFromArray(this.tableCards, sameCards[0]);
+        }else if(_cardCombinations.length > 0){
+            // TODO Karte zu Spieler Konto
+            // Spieler kann Karte nehmen.
+            console.log(_cardCombinations);
+
+            // TODO: _cardCombinations[0] aktuell nur erst bester genommen
+            // TODO: Zum aktuellen Spieler hinzufügen
+            let _cardsToRemove = _cardCombinations[0];
+            for (let element in _cardsToRemove){
+                this.removeFromArray(this.tableCards, _cardsToRemove[element]);
+            }
         }else{
             // Karte kann nicht genommen werden.
             this.tableCards.push(_card);
@@ -63,15 +76,16 @@ class ScopaLogic{
         var _gameData = {
             messageType: 0,
             tableCards: this.tableCards,
-            handCards: []
+            handCards: [],
         };
 
+        console.log("server daten sendet folgende tisch karten"+_gameData.tableCards)
         aRoom.sendAll(JSON.stringify(_gameData));
     }
 
     // Gibt gemischte Karten
     getNextCards(aCardCount) {
-        var _cards = [];
+        let _cards = [];
 
         for (let i = 0; i < aCardCount; i++) {
             _cards.push(this.shuffeldCards.shift());
@@ -87,7 +101,7 @@ class ScopaLogic{
 
     // Misch Algorithmus
     shuffle(array) {
-        var currentIndex = array.length, temporaryValue, randomIndex;
+        let currentIndex = array.length, temporaryValue, randomIndex;
 
         // While there remain elements to shuffle...
         while (0 !== currentIndex) {
@@ -106,13 +120,13 @@ class ScopaLogic{
 
     // Gibt die unterschiede von 2 Array zurück
     getArrayDiffrence (a1, a2) {
-        var a = [], diff = [];
+        let a = [], diff = [];
 
-        for (var i = 0; i < a1.length; i++) {
+        for (let i = 0; i < a1.length; i++) {
             a[a1[i]] = true;
         }
 
-        for (var j = 0; j < a2.length; j++) {
+        for (let j = 0; j < a2.length; j++) {
             if (a[a2[j]]) {
                 delete a[a2[j]];
             } else {
@@ -120,7 +134,7 @@ class ScopaLogic{
             }
         }
 
-        for (var k in a) {
+        for (let k in a) {
             diff.push(k);
         }
 
@@ -129,10 +143,10 @@ class ScopaLogic{
 
     // Gibt zurück ob sich die gleiche Karte einer anderen Farbe auf dem Tisch liegt
     checkCardNumberIsOnTable(aCard){
-        var cardNumber = aCard.charAt(0);
-        var choosableCards = []
+        let cardNumber = aCard.charAt(0);
+        let choosableCards = []
 
-        for (var tableCard in this.tableCards){
+        for (let tableCard in this.tableCards){
             if(this.tableCards[tableCard].charAt(0) == cardNumber){
                 // Zu möglichen gleichen Karten hinzufügen
                 choosableCards.push(this.tableCards[tableCard]);
@@ -141,15 +155,69 @@ class ScopaLogic{
         return choosableCards;
     }
 
+    getPossibleCardCombinationWithCard(aCard){
+        let _result = [];
+        let _cardValue = parseInt(aCard.charAt(0));
+        let _allCombinations = this.getAllCardCombinations();
+
+        for (let combination in _allCombinations){
+            let _combination = _allCombinations[combination];
+
+            if(_combination.length <= 1){
+                continue;
+            }
+
+            let sum = 0;
+            let cardComboIds = []
+            for (let entry in _combination){
+                sum += parseInt(_combination[entry].cardValue);
+                cardComboIds.push(_combination[entry].cardId);
+            }
+
+            if(sum === _cardValue){
+                _result.push(cardComboIds);
+            }
+        }
+
+        return _result;
+    }
+
+    // Gibt mögliche Karten-Kombinationen, welche in der Summe den Wert der Karte ergeben.
+    getAllCardCombinations(){
+        let _tableCardWithValues = this.getActualTableCardIdsWithValue();
+        let cmb = Combinatorics.power(_tableCardWithValues);
+        return cmb.toArray();
+    }
+
     // Löscht ein Element aus Array (TableCard, HandCard)
     removeFromArray(aArray, aElemnt){
-        for( var i = 0; i < aArray.length; i++){
+        for( let i = 0; i < aArray.length; i++){
+            console.log(aArray[i]+" "+aElemnt)
             if ( aArray[i] === aElemnt) {
                 aArray.splice(i, 1);
             }
         }
     }
 
+    // Gibt die aktuellen Tischkarten mit deren Wert zurück.
+    getActualTableCardIdsWithValue(){
+        let tableCardsWithValue = [];
+
+        for (let tableCard in this.tableCards){
+            if(!this.tableCards.hasOwnProperty(tableCard)){
+                continue;
+            }
+
+            let _cardId = this.tableCards[tableCard];
+            tableCardsWithValue.push({
+                cardId: _cardId,
+                cardValue: _cardId.charAt(0)
+            });
+        }
+
+        return tableCardsWithValue;
+    }
 }
+
 
 module.exports.ScopaLogic = ScopaLogic;

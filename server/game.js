@@ -1,11 +1,12 @@
-var MESSAGE_TYPE = {
+let MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
-    CHAT_MESSAGE: 1,
-    CLIENT_MESSAGE: 2
+    CLIENT_CARD: 1,
+    CLIENT_CHAT: 2,
+    CLIENT_STATE: 3
 };
-var Message = require('./message').Message;
-var ScopaLogic = require('./scopaLogic').ScopaLogic;
-var scopaLogic = null;
+let Message = require('./message').Message;
+let ScopaLogic = require('./scopaLogic').ScopaLogic;
+let scopaLogic = null;
 
 
 function User(socket) {
@@ -13,9 +14,16 @@ function User(socket) {
     // assign a random number to User. Long enough to make duplication chance less.
     this.id = "1" + Math.floor( Math.random() * 1000000000);
 }
+
+// Name des Spielers setzten.
 User.prototype.setName = function (name) {
     this.name = name;
-}
+};
+
+// ID des Spielers setzten
+User.prototype.setId = function (aId) {
+    this.id = aId;
+};
 
 
 function Room() {
@@ -25,7 +33,7 @@ function Room() {
 // Person ins Spiel einloggen
 Room.prototype.addUser = function(user){
     this.users.push(user);
-    var room = this;
+    let room = this;
 
     // TODO: Pro Spiel eine Scopa Logik (diese Verwaltet jeweil ein Duell)
     scopaLogic = new ScopaLogic();
@@ -46,13 +54,13 @@ Room.prototype.addUser = function(user){
 
 // Text Nahricht senden.
 Room.prototype.sendMessageData = function(user, room) {
-    var _userDisplayName = user.id;
+    let _userDisplayName = user.id;
     if(user.name){
         _userDisplayName = user.name;
     }
-    var message = "Wilkommen " + _userDisplayName+ " zu Scopa. Aktuell eingeloggte Spieler: " + room.users.length;
-    var _data = {
-        messageType: MESSAGE_TYPE.CHAT_MESSAGE,
+    let message = "Wilkommen " + _userDisplayName+ " zu Scopa. Aktuell eingeloggte Spieler: " + room.users.length;
+    let _data = {
+        messageType: MESSAGE_TYPE.CLIENT_CHAT,
         content: message
     };
     room.sendAll(JSON.stringify(_data));
@@ -60,35 +68,38 @@ Room.prototype.sendMessageData = function(user, room) {
 
 // Spiel-Nachricht senden. (Karten auf Tisch/in der Hand,..)
 Room.prototype.sendGameData = function(user, room) {
-    var _message = scopaLogic.getGameStateMessage();
+    let _message = scopaLogic.getGameStateMessage();
     room.sendAll(JSON.stringify(_message));
 };
 
 // Auf Client Nachrichten reagieren
 Room.prototype.handleOnUserMessage = function(user) {
-    var room = this;
+    let room = this;
 
     // handle on message
     user.socket.on("message", function(message){
-        var _data = JSON.parse(message);
+        let _data = JSON.parse(message);
 
-        if(_data.messageType === 1){
-            var _userDisplayName = user.id;
+        console.log("message Type: " + _data.messageType);
+
+        if(_data.messageType === MESSAGE_TYPE.CLIENT_CHAT){
+            let _userDisplayName = user.id;
             if(user.name){
                 _userDisplayName = user.name;
             }
 
-            var _content = _userDisplayName + " : " + _data.content;
-
-            var _message = new Message(MESSAGE_TYPE.CHAT_MESSAGE);
-            _message.content = _content;
+            console.log("username:" +_userDisplayName)
+            let _message = new Message(MESSAGE_TYPE.CLIENT_CHAT);
+            _message.content = _userDisplayName + " : " + _data.content;
 
             room.sendAll(JSON.stringify(_message));
-        }else{
-            console.log("Raum"+room);
+        }else if(_data.messageType === MESSAGE_TYPE.CLIENT_CARD){
+            console.log("messge id "+ _data.messageType);
             scopaLogic.processPlayerMessage(_data,room);
-            console.log("charteli"+_data.content);
-            console.log("Raum"+room);
+            console.log("charteli: "+_data.content);
+        }else if(_data.messageType === MESSAGE_TYPE.CLIENT_STATE){
+            user.setName(_data.playerName);
+            user.setId(_data.playerId);
         }
     });
 };
@@ -96,17 +107,26 @@ Room.prototype.handleOnUserMessage = function(user) {
 // Löscht einen Spieler aus dem Spiel
 Room.prototype.removeUser = function(user) {
     // loop to find the user
-    for (var i=this.users.length; i >= 0; i--) {
+    for (let i=this.users.length; i >= 0; i--) {
         if (this.users[i] === user) {
             this.users.splice(i, 1);
         }
     }
 };
 
-// Nachricht an alle Spieler Senden
+// Nachricht an alle Spieler senden
 Room.prototype.sendAll = function(message) {
-    for (var i=0, len=this.users.length; i<len; i++) {
+    for (let i=0, len=this.users.length; i<len; i++) {
         this.users[i].socket.send(message);
+    }
+};
+
+// Nachricht an spezigischen Spieler senden
+Room.prototype.sendToUser = function(message, aUserId) {
+    for (let i=0, len=this.users.length; i<len; i++) {
+        if(this.users[i].playerId === aUserId){
+            this.users[i].socket.send(message);
+        }
     }
 };
 

@@ -1,43 +1,68 @@
-var websocket = null;
+let websocket = null;
 
 const MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
-    CHAT_MESSAGE: 1,
-    CLIENT_MESSAGE: 2
-}
+    CLIENT_CARD: 1,
+    CLIENT_CHAT: 2,
+    CLIENT_STATE: 3
+};
 
-var tableCardArray = [];
-var handCardArray = [];
-var isGameStart = true;
-var lastPlayedCard = "";
-var playerId = null;
-var startDate = new Date();
-var endDate = new Date();
-var roundNumber = 1;
-var cardShufflerId = null;
+let tableCardArray = [];
+let handCardArray = [];
+let isGameStart = true;
+let lastPlayedCard = "";
+let playerName = "";
+let playerId = null;
+let startDate = new Date();
+let endDate = new Date();
+let roundNumber = 1;
 
 $(function () {
-    this.playerId = create_UUID;
+    $("#formPlayerName" ).submit(function( event ) {
+        startScopa()
+        event.preventDefault();
+    });
 
+
+    /*$("#startGame").on("click",function(e) {
+       startScopa();
+    });*/
+
+
+});
+
+function startScopa() {
+    $("#login").hide();
+    $("#chat-widnow").css("display", "block");
+
+    // Gleich zu Beginn die ID des Spielers setzen und speichern.
+    this.playerId = create_UUID;
+    playerName = $("#userName").val();
     // Rendern des Chatfensters
     renderChatBox();
     websocket = {};
 
-    // check if existence of WebSockets in browser
+    // Überprüft auf Existenz von "WebSeockets" im Browser.
     if (window["WebSocket"]) {
         websocket.socket = new WebSocket("ws://127.0.0.1:8000");
 
-        // on open event
+        // Verbindungsaufbau. Client meldet seine ID und seinen Namen.
         websocket.socket.onopen = function (e) {
-            console.log('WebSocket connection established');
-            // TODO: direkt nach verbinden Spieler Info Setzen z.B. Name)
-            // websocket.socket.send('TEESST INIT')
+            console.log('WebSocket Verbindung aufgebaut.');
+            playerId = create_UUID();
+            let _data = {
+                messageType: MESSAGE_TYPE.CLIENT_STATE,
+                playerId:  playerId,
+                playerName: playerName
+            };
+            websocket.socket.send(JSON.stringify(_data));
         };
 
         // on message event
         websocket.socket.onmessage = function (e) {
-            var _data = JSON.parse(e.data);
+            let _data = JSON.parse(e.data);
 
+            console.log()
             if (_data.messageType === MESSAGE_TYPE.SERVER_MESSAGE) {
                 // Spiel Informations-Nachricht
                 handleGameAction(_data);
@@ -52,20 +77,21 @@ $(function () {
             console.log('WebSocket connection closed');
         };
     }
-    $("#send").click(sendMessage);
+    $("#send").click(sendChatMessage);
 
     $("#chat-input").keypress(function (event) {
         if (event.keyCode == '13') {
-            sendMessage();
+            sendChatMessage();
         }
     });
+}
 
-});
-
-function sendMessage(aType, aContent) {
-    var message = $("#chat-input").val();
-    var _data = {
-        messageType: MESSAGE_TYPE.CHAT_MESSAGE,
+function sendChatMessage(aType, aContent) {
+    let message = $("#chat-input").val();
+    console.log("chatfensterMessage"+message)
+    let _data = {
+        messageType: MESSAGE_TYPE.CLIENT_CHAT,
+        playerId: playerId,
         content: message
     };
     websocket.socket.send(JSON.stringify(_data));
@@ -97,7 +123,7 @@ function renderChatBox() {
 // Chat-Nachricht
 function handleChatMessage(aData) {
     // Chat Nachricht zum Verlauf hinzufügen
-    var textarea = document.getElementById('chat-history');
+    let textarea = document.getElementById('chat-history');
     textarea.append(aData.content + '\n');
 
     // Inhalt nach unten scrollen
@@ -110,16 +136,19 @@ function handleGameAction(aData) {
         this.tableCardArray = aData.tableCards;
         this.handCardArray = aData.playerCards;
 
+        console.log("tablecards received:"+this.tableCardArray)
+        console.log("tablecards received:"+this.handCardArray)
+
         for (let i = 0; i < this.tableCardArray.length; i++) {
-            var _card = this.tableCardArray[i];
-            var _cardNumber = _card.toString().split("_")[0];
-            var _cardType = _card.toString().split("_")[1];
+            let _card = this.tableCardArray[i];
+            let _cardNumber = _card.toString().split("_")[0];
+            let _cardType = _card.toString().split("_")[1];
             addCardToTable(_cardNumber, _cardType);
         }
         for (let i = 0; i < this.handCardArray.length; i++) {
-            var _card = this.handCardArray [i];
-            var _cardNumber = _card.toString().split("_")[0];
-            var _cardType = _card.toString().split("_")[1];
+            let _card = this.handCardArray [i];
+            let _cardNumber = _card.toString().split("_")[0];
+            let _cardType = _card.toString().split("_")[1];
             addCardToHand(_cardNumber, _cardType);
         }
         isGameStart = false;
@@ -130,7 +159,7 @@ function handleGameAction(aData) {
 
 // Karte zum Tisch hinzufügen
 function addCardToTable(aCardNumber, aCardType) {
-    var _newId = 'card_' + aCardNumber + '_' + aCardType;
+    let _newId = 'card_' + aCardNumber + '_' + aCardType;
     $("#table").append('<div id="' + _newId + '" class="table_card"></div>');
     $("#" + _newId).css('background', 'url("images/cards/' + aCardNumber + '.' + aCardType + '.png")');
     $("#" + _newId).css('background-size', 'contain');
@@ -141,7 +170,7 @@ function addCardToTable(aCardNumber, aCardType) {
 
 // Karte vom Spieler hinzufügen
 function addCardToHand(aCardNumber, aCardType) {
-    var _newId = 'card_' + aCardNumber + '_' + aCardType;
+    let _newId = 'card_' + aCardNumber + '_' + aCardType;
     $("#hand").append('<div id="' + _newId + '" class="card" ></div>');
     $("#" + _newId).css('background', 'url("images/cards/' + aCardNumber + '.' + aCardType + '.png")');
     $("#" + _newId).css('background-size', 'contain');
@@ -155,21 +184,12 @@ function addCardToHand(aCardNumber, aCardType) {
 // Klick auf Karte
 function selectedCard(id) {
     console.log("selectedCard: " + id.toString());
-    // var bg = $("#"+id).css("background");
-    // var _newId = (id+'_table');
-    //
-    // $("#table").append('<div id="'+_newId +'" class="table_card"></div>')
-    //
-    // $("#"+_newId).css('background', bg);
-    // $("#"+_newId).css('background-size', 'contain');
-    // $("#"+_newId).css('background-color', 'white');
-    // $("#"+_newId).css('background-repeat', 'no-repeat');
-    // $("#"+_newId).css({'transform' : 'rotate('+ getRandomInt(-17,+13) +'deg)'});
 
-    var _imageId = id.replace('card_', '');
+    let _imageId = id.replace('card_', '');
     lastPlayedCard = _imageId;
-    var _data = {
-        messageType: 0,
+    let _data = {
+        messageType: MESSAGE_TYPE.CLIENT_CARD,
+        playerId: playerId,
         content: _imageId
     };
     websocket.socket.send(JSON.stringify(_data));
@@ -183,37 +203,38 @@ function removeCard(aCard) {
 
 // Erhaltene Karten auf dem Tisch handeln.
 function handleTableCardFromMessage(aArrivedCards) {
-    // Welche fehlen in B
-    var _cardsToRemove = [];
 
-    for (var i = this.tableCardArray.length; i--;) {
+    // Welche fehlen in B
+    let _cardsToRemove = [];
+
+    for (let i = this.tableCardArray.length; i--;) {
         if (aArrivedCards.indexOf(this.tableCardArray[i]) === -1) {
             _cardsToRemove.push(this.tableCardArray[i]);
         }
     }
 
     if (_cardsToRemove.length > 0) {
-        for (var _card in _cardsToRemove) {
+        for (let _card in _cardsToRemove) {
             removeCard(_cardsToRemove[_card]);
         }
         // gespielte Karte löschen.
         removeCard(lastPlayedCard);
     } else {
         // Karte aus Hnad löschen
-        var _lastCardNumber = lastPlayedCard.charAt(0);
-        var _lastCardType = lastPlayedCard.charAt(2);
+        let _lastCardNumber = lastPlayedCard.charAt(0);
+        let _lastCardType = lastPlayedCard.charAt(2);
 
         removeCard(lastPlayedCard); //
         addCardToTable(_lastCardNumber, _lastCardType);
     }
-
-
+    this.tableCardArray = aArrivedCards;
 }
 
+// Generierung einer UUID.
 function create_UUID(){
-    var dt = new Date().getTime();
-    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = (dt + Math.random()*16)%16 | 0;
+    let dt = new Date().getTime();
+    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        let r = (dt + Math.random()*16)%16 | 0;
         dt = Math.floor(dt/16);
         return (c=='x' ? r :(r&0x3|0x8)).toString(16);
     });
