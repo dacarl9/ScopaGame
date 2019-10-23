@@ -202,6 +202,12 @@ function removeCard(aCard) {
 // Erhaltene Karten auf dem Tisch handeln.
 function handleTableCardFromMessage(aArrivedCards) {
 
+    // SCOPA !!!
+    if(aArrivedCards.length === 0){
+        scopaNotification();
+    }
+
+
     // Welche fehlen in B
     let _cardsToRemove = [];
 
@@ -228,6 +234,15 @@ function handleTableCardFromMessage(aArrivedCards) {
         addCardToTable(_lastCardNumber, _lastCardType);
     }
     this.tableCardArray = aArrivedCards;
+}
+
+// Funktion wenn ein Scopa gemacht wird. (wird für Audio und Dialog-Einblendung gebraucht)
+function scopaNotification() {
+    var audio = new Audio('media/scopa.mp3');
+    audio.play();
+    $("#scopa_info").show(600).delay(3000).hide(0);
+    var audio = new Audio('media/scopa.mp3');
+    audio.play();
 }
 
 // Generierung einer UUID.
