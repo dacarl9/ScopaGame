@@ -1,7 +1,7 @@
 class Message {
     constructor(type){
         this.messageType = type;
-        this.playerId = '';
+        this.playerId = 'nicht gesetzt';
         this.startDate = new Date();
         this.endDate = new Date();
         this.tableCards = [];

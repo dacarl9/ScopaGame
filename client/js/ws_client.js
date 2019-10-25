@@ -12,7 +12,7 @@ let handCardArray = [];
 let isGameStart = true;
 let lastPlayedCard = "";
 let playerName = "";
-let playerId = null;
+let playerId = 'client not set';
 let startDate = new Date();
 let endDate = new Date();
 let roundNumber = 1;
@@ -34,7 +34,7 @@ function startScopa() {
     $("#chat-widnow").css("display", "block");
 
     // Gleich zu Beginn die ID des Spielers setzen und speichern.
-    this.playerId = create_UUID;
+    playerId = create_UUID();
     playerName = $("#userName").val()!='' ?$("#userName").val():'unnamed';
     // Rendern des Chatfensters
     renderChatBox();
@@ -47,7 +47,6 @@ function startScopa() {
         // Verbindungsaufbau. Client meldet seine ID und seinen Namen.
         websocket.socket.onopen = function (e) {
             console.log('WebSocket Verbindung aufgebaut.');
-            playerId = create_UUID();
             let _data = {
                 messageType: MESSAGE_TYPE.CLIENT_STATE,
                 playerId:  playerId,
@@ -60,7 +59,6 @@ function startScopa() {
         websocket.socket.onmessage = function (e) {
             let _data = JSON.parse(e.data);
 
-            console.log()
             if (_data.messageType === MESSAGE_TYPE.SERVER_MESSAGE) {
                 // Spiel Informations-Nachricht
                 handleGameAction(_data);
@@ -86,7 +84,7 @@ function startScopa() {
 
 function sendChatMessage(aType, aContent) {
     let message = $("#chat-input").val();
-    console.log("chatfensterMessage "+playerId+"  "+message)
+    console.log("chatfenster Message "+playerId+"  "+message)
     let _data = {
         messageType: MESSAGE_TYPE.CLIENT_CHAT,
         playerId: playerId,

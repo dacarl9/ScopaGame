@@ -5,14 +5,14 @@ var port = 8000;
 var WebSocketServer = require('ws').Server;
 var server = new WebSocketServer({ port: port });
 
-var User = require('./game').User;
 var Room = require('./game').Room;
+var Player = require('./game').Player;
 var room = new Room();
 
 // Server welcher Tische mit Spielern befüllt sobald 2 Spieler eingeloggt sind, kann ein Spiel gestartet werden
 server.on('connection', function(socket) {
-    var user = new User(socket);
-    room.addUser(user);
+    var player = new Player(socket);
+    room.addPlayer(player);
     console.log("A connection established");
 });
 

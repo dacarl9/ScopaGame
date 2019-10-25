@@ -36,6 +36,12 @@ class ScopaLogic{
         this.shuffleCards();
     }
 
+    // Raum information anpassen
+    updateRoomInfo(aAcutalRoom){
+        this.room = aAcutalRoom;
+        console.log(this.room.players[1].playerid);
+    }
+
     // Startet ein Duell. Es sind bereits 2 Spieler angemeldet.
     startGame(){
         this.tableCards = this.getNextCards(4);
@@ -44,11 +50,16 @@ class ScopaLogic{
         this.cardShufflerId = 1;
 
         let _message = new Message(0);
-        _message.playerId = this.room.users[0].playerId;
+        _message.playerId = this.room.players[0].playerId;
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player1Cards;
-        this.room.sendToUser(JSON.stringify(_message));
-        console.log("sent to player with id: "+_message.playerId);
+        this.room.sendToPlayer(_message);
+
+        _message = new Message(0);
+        _message.playerId = this.room.players[1].playerId;
+        _message.tableCards = this.tableCards;
+        _message.playerCards = this.player2Cards;
+        this.room.sendToPlayer(_message);
     }
 
     // Erstellt anhand der aktuellen Spielsituation eine Message, welche anschliessend an einen Spieler gesendet wird.
