@@ -33,7 +33,7 @@ class ScopaLogic {
             is_cardShuffler: false,
             takenCards: [],
             scopaCount: 0,
-            totalPoints: 0
+            totalPoints: 11
         }
         this.gameRoundNumber = 1;
         // Satzrunde (wird für das erkennen des Ende einer Gamerunde verwendet)
@@ -44,7 +44,10 @@ class ScopaLogic {
         this.lastPlayedPlayer = 'not setted';
         // Karte mischen
         this.shuffleCards(); //TODO: Kann verschoben werden
+
+        this.winnerId = null;
     }
+
     // Startet das Spiel. (Teilt jeweils 3 Karten den Spielern aus und 4 auf den Tisch.
     startGame() {
         this.tableCards = this.getNextCards(4);
@@ -72,6 +75,7 @@ class ScopaLogic {
         this.room.sendToPlayer(_message);
     }
 
+    // Karten austeilen
     playOutCards() {
         this.player1.id = this.room.players[0].playerId;
         this.player1.actualHandCards = this.getNextCards(3);
@@ -163,6 +167,21 @@ class ScopaLogic {
                 // Zählt
                 this.countPlayerRoundPoints();
 
+                this.checkWinner();
+
+                if(this.winnerId){ // TODO ! wegnehmen
+                    let _winnerPlayer = this.winnerId == this.player1.id ? this.player1: this.player2;
+
+                    var _winMessage = {
+                        messageType: 4,
+                        winnerId: this.winnerId
+                    };
+
+                    this.room.sendAll(JSON.stringify(_winMessage));
+                }
+
+                this.setRoundNumber = 1;
+                this.gameRoundNumber++;
             }
         }
     }
@@ -476,6 +495,27 @@ class ScopaLogic {
 
         for (let i = 0; i < this.tableCards.length; i++) {
             this.addCardToAccount(_playerId,this.tableCards[i]);
+        }
+    }
+
+    checkWinner(){
+        // Beide Spieler haben noch nicht 11
+        if(this.player1.totalPoints < 11 && this.player2.totalPoints < 11 ){
+            return;
+        }
+
+        // Beide Spieler haben gleich viele Punkte
+        if(this.player1.totalPoints === this.player2.totalPoints){
+            return;
+        }
+
+        if(this.player1.totalPoints > this.player2.totalPoints && this.player1.totalPoints >=11){
+            // Player 1 gewonnen sachen machen
+           this.winnerId= this.player1.id;
+        }
+
+        if(this.player2.totalPoints > this.player1.totalPoints && this.player1.totalPoints >=11){
+            this.winnerId = this.player2.id;
         }
     }
 }

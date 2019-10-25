@@ -4,7 +4,8 @@ const MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
     CLIENT_CARD: 1,
     CLIENT_CHAT: 2,
-    CLIENT_STATE: 3
+    CLIENT_STATE: 3,
+    WIN_MESSAGE:4
 };
 
 let tableCardArray = [];
@@ -63,7 +64,9 @@ function startScopa() {
             if (_data.messageType === MESSAGE_TYPE.SERVER_MESSAGE) {
                 // Spiel Informations-Nachricht
                 handleGameAction(_data);
-            } else {
+            }else if(_data.messageType === MESSAGE_TYPE.WIN_MESSAGE){
+                handleWinAction(_data.winnerId)
+            }else {
                 // Chat Nachricht
                 handleChatMessage(_data);
             }
@@ -265,6 +268,11 @@ function waitOnRivalNotification() {
     $("#wait_info").show(600).delay(3000).hide(0);
     var audio = new Audio('media/wait.mp3');
     audio.play();
+}
+
+function handleWinMessage(aWinnnerId) {
+
+
 }
 
 // Generierung einer UUID.
