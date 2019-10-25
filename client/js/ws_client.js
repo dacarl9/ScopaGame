@@ -86,7 +86,7 @@ function startScopa() {
 
 function sendChatMessage(aType, aContent) {
     let message = $("#chat-input").val();
-    console.log("chatfensterMessage"+message)
+    console.log("chatfensterMessage "+playerId+"  "+message)
     let _data = {
         messageType: MESSAGE_TYPE.CLIENT_CHAT,
         playerId: playerId,
@@ -131,6 +131,7 @@ function handleChatMessage(aData) {
 // Spiel Daten vom Server verarbeiten
 function handleGameAction(aData) {
     if (isGameStart) {
+
         this.tableCardArray = aData.tableCards;
         this.handCardArray = aData.playerCards;
 
@@ -151,8 +152,45 @@ function handleGameAction(aData) {
         }
         isGameStart = false;
     } else {
-        handleTableCardFromMessage(aData.tableCards);
+        handleTableCardFromMessage(aData.tableCards, aData.playerCards);
     }
+}
+
+// Erhaltene Karten auf dem Tisch handeln.
+function handleTableCardFromMessage(aArrivedCards) {
+
+    // SCOPA !!!
+    if(aArrivedCards.length === 0){
+        scopaNotification();
+    }
+
+
+    // Welche fehlen in B
+    let _cardsToRemove = [];
+
+    for (let i = this.tableCardArray.length; i--;) {
+        if (aArrivedCards.indexOf(this.tableCardArray[i]) === -1) {
+            _cardsToRemove.push(this.tableCardArray[i]);
+        }
+    }
+
+    if (_cardsToRemove.length > 0) {
+        for (let _card in _cardsToRemove) {
+            removeCard(_cardsToRemove[_card]);
+        }
+        // gespielte Karte löschen.
+        removeCard(lastPlayedCard);
+    } else {
+        let _is10 = lastPlayedCard.length ===3;
+
+        // Karte aus Hnad löschen
+        let _lastCardNumber = _is10 ?lastPlayedCard.charAt(0):lastPlayedCard.charAt(0)+lastPlayedCard.charAt(1);
+        let _lastCardType = _is10? lastPlayedCard.charAt(2): lastPlayedCard.charAt(3);
+
+        removeCard(lastPlayedCard); //
+        addCardToTable(_lastCardNumber, _lastCardType);
+    }
+    this.tableCardArray = aArrivedCards;
 }
 
 // Karte zum Tisch hinzufügen
@@ -199,47 +237,8 @@ function removeCard(aCard) {
     $("#" + "card_" + aCard).remove();
 }
 
-// Erhaltene Karten auf dem Tisch handeln.
-function handleTableCardFromMessage(aArrivedCards) {
-
-    // SCOPA !!!
-    if(aArrivedCards.length === 0){
-        scopaNotification();
-    }
-
-
-    // Welche fehlen in B
-    let _cardsToRemove = [];
-
-    for (let i = this.tableCardArray.length; i--;) {
-        if (aArrivedCards.indexOf(this.tableCardArray[i]) === -1) {
-            _cardsToRemove.push(this.tableCardArray[i]);
-        }
-    }
-
-    if (_cardsToRemove.length > 0) {
-        for (let _card in _cardsToRemove) {
-            removeCard(_cardsToRemove[_card]);
-        }
-        // gespielte Karte löschen.
-        removeCard(lastPlayedCard);
-    } else {
-        let _is10 = lastPlayedCard.length ===3;
-
-        // Karte aus Hnad löschen
-        let _lastCardNumber = _is10 ?lastPlayedCard.charAt(0):lastPlayedCard.charAt(0)+lastPlayedCard.charAt(1);
-        let _lastCardType = _is10? lastPlayedCard.charAt(2): lastPlayedCard.charAt(3);
-
-        removeCard(lastPlayedCard); //
-        addCardToTable(_lastCardNumber, _lastCardType);
-    }
-    this.tableCardArray = aArrivedCards;
-}
-
 // Funktion wenn ein Scopa gemacht wird. (wird für Audio und Dialog-Einblendung gebraucht)
 function scopaNotification() {
-    var audio = new Audio('media/scopa.mp3');
-    audio.play();
     $("#scopa_info").show(600).delay(3000).hide(0);
     var audio = new Audio('media/scopa.mp3');
     audio.play();

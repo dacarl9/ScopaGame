@@ -11,7 +11,9 @@ const Message = require('./message').Message;
 const Combinatorics = require('./combinatorics');
 
 class ScopaLogic{
-    constructor(){
+    constructor(aRoom){
+        // Virtueller Tisch an dem die Spieler sitzen.
+        this.room = aRoom;
         // Gemischte Karten der Runde
         this.shuffeldCards = [];
         // Karten auf dem Tisch
@@ -24,15 +26,29 @@ class ScopaLogic{
         this.takenCardsPlayer1 = [];
         // Spieler 2 genommene Karten
         this.takenCardsPlayer2 = [];
+        // Spielrunde
+        this.gameRoundNumber = 1;
+        // Satzrunde (wird für das erkennen des Ende einer Gamerunde verwendet)
+        this.setRoundNumber = 1;
+        // Karten verteiler
+        this.shufflePlayer = '';
         // Karte mischen
         this.shuffleCards();
     }
 
+    // Startet ein Duell. Es sind bereits 2 Spieler angemeldet.
     startGame(){
         this.tableCards = this.getNextCards(4);
         this.player1Cards = this.getNextCards(3);
         this.player2Cards = this.getNextCards(3);
         this.cardShufflerId = 1;
+
+        let _message = new Message(0);
+        _message.playerId = this.room.users[0].playerId;
+        _message.tableCards = this.tableCards;
+        _message.playerCards = this.player1Cards;
+        this.room.sendToUser(JSON.stringify(_message));
+        console.log("sent to player with id: "+_message.playerId);
     }
 
     // Erstellt anhand der aktuellen Spielsituation eine Message, welche anschliessend an einen Spieler gesendet wird.
@@ -224,5 +240,4 @@ class ScopaLogic{
         return tableCardsWithValue;
     }
 }
-
 module.exports.ScopaLogic = ScopaLogic;

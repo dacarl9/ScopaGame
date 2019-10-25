@@ -1,13 +1,13 @@
 class Message {
     constructor(type){
         this.messageType = type;
-        this.playerId = create_UUID();
+        this.playerId = '';
         this.startDate = new Date();
         this.endDate = new Date();
         this.tableCards = [];
         this.playerCards = [];
-        this.roundNumber = 0;
-        this.cardShufflerId = this.playerId;
+        this.roundNumber = 1;
+        this.cardShufflerId = '';
         this.actionCard = '';
         this.content ='';
     }
