@@ -6,6 +6,7 @@ class Message {
         this.endDate = new Date();
         this.tableCards = [];
         this.playerCards = [];
+        this.lastPlayedPlayer = 'nicht gesetzt';
         this.roundNumber = 1;
         this.cardShufflerId = '';
         this.actionCard = '';

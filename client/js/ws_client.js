@@ -13,6 +13,7 @@ let isGameStart = true;
 let lastPlayedCard = "";
 let playerName = "";
 let playerId = 'client not set';
+let isFreed = false;
 let startDate = new Date();
 let endDate = new Date();
 let roundNumber = 1;
@@ -35,7 +36,7 @@ function startScopa() {
 
     // Gleich zu Beginn die ID des Spielers setzen und speichern.
     playerId = create_UUID();
-    playerName = $("#userName").val()!='' ?$("#userName").val():'unnamed';
+    playerName = $("#userName").val() != '' ? $("#userName").val() : 'unnamed';
     // Rendern des Chatfensters
     renderChatBox();
     websocket = {};
@@ -49,7 +50,7 @@ function startScopa() {
             console.log('WebSocket Verbindung aufgebaut.');
             let _data = {
                 messageType: MESSAGE_TYPE.CLIENT_STATE,
-                playerId:  playerId,
+                playerId: playerId,
                 playerName: playerName
             };
             websocket.socket.send(JSON.stringify(_data));
@@ -84,7 +85,7 @@ function startScopa() {
 
 function sendChatMessage(aType, aContent) {
     let message = $("#chat-input").val();
-    console.log("chatfenster Message "+playerId+"  "+message)
+    console.log("chatfenster Message " + playerId + "  " + message)
     let _data = {
         messageType: MESSAGE_TYPE.CLIENT_CHAT,
         playerId: playerId,
@@ -128,9 +129,14 @@ function handleChatMessage(aData) {
 
 // Spiel Daten vom Server verarbeiten
 function handleGameAction(aData) {
+
+    if (playerId != aData.lastPlayedPlayer) {
+        isFreed = true;
+    }
+
     if (isGameStart || aData.newRound) {
-        console.log("tablecards received:"+this.tableCardArray)
-        console.log("tablecards received:"+this.handCardArray)
+        console.log("tablecards received:" + this.tableCardArray)
+        console.log("tablecards received:" + this.handCardArray)
 
         this.handCardArray = aData.playerCards;
         for (let i = 0; i < this.handCardArray.length; i++) {
@@ -141,7 +147,7 @@ function handleGameAction(aData) {
         }
 
         // Muss nur nach neuem Mischeln gemacht werden
-        if(!aData.newRound) {
+        if (!aData.newRound) {
             this.tableCardArray = aData.tableCards;
             for (let i = 0; i < this.tableCardArray.length; i++) {
                 let _card = this.tableCardArray[i];
@@ -162,7 +168,7 @@ function handleGameAction(aData) {
 function handleTableCardFromMessage(aArrivedCards) {
 
     // SCOPA !!!
-    if(aArrivedCards.length === 0){
+    if (aArrivedCards.length === 0) {
         scopaNotification();
     }
 
@@ -183,11 +189,11 @@ function handleTableCardFromMessage(aArrivedCards) {
         // gespielte Karte löschen.
         removeCard(lastPlayedCard);
     } else {
-        let _is10 = lastPlayedCard.length ===3;
+        let _is10 = lastPlayedCard.length === 3;
 
         // Karte aus Hnad löschen
-        let _lastCardNumber = _is10 ?lastPlayedCard.charAt(0):lastPlayedCard.charAt(0)+lastPlayedCard.charAt(1);
-        let _lastCardType = _is10? lastPlayedCard.charAt(2): lastPlayedCard.charAt(3);
+        let _lastCardNumber = _is10 ? lastPlayedCard.charAt(0) : lastPlayedCard.charAt(0) + lastPlayedCard.charAt(1);
+        let _lastCardType = _is10 ? lastPlayedCard.charAt(2) : lastPlayedCard.charAt(3);
 
         removeCard(lastPlayedCard); //
         addCardToTable(_lastCardNumber, _lastCardType);
@@ -223,15 +229,22 @@ function addCardToHand(aCardNumber, aCardType) {
 function selectedCard(id) {
     console.log("selectedCard: " + id.toString());
 
+    if (!isFreed) {
+        waitOnRivalNotification();
+        return;
+    }
+
     let _imageId = id.replace('card_', '');
     lastPlayedCard = _imageId;
     let _data = {
         messageType: MESSAGE_TYPE.CLIENT_CARD,
         playerId: playerId,
-        content: _imageId,
-        lastPlayedCard: lastPlayedCard
+        content: _imageId
     };
     websocket.socket.send(JSON.stringify(_data));
+
+    // Nach dem Karten spielen wird der Spieler fürs Kartenlegen gesperrt.
+    isFreed = false;
 }
 
 // Spezifische Karte entfernen.
@@ -247,13 +260,20 @@ function scopaNotification() {
     audio.play();
 }
 
+// Funktion wenn ein Scopa gemacht wird. (wird für Audio und Dialog-Einblendung gebraucht)
+function waitOnRivalNotification() {
+    $("#wait_info").show(600).delay(3000).hide(0);
+    var audio = new Audio('media/wait.mp3');
+    audio.play();
+}
+
 // Generierung einer UUID.
-function create_UUID(){
+function create_UUID() {
     let dt = new Date().getTime();
-    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        let r = (dt + Math.random()*16)%16 | 0;
-        dt = Math.floor(dt/16);
-        return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        let r = (dt + Math.random() * 16) % 16 | 0;
+        dt = Math.floor(dt / 16);
+        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
     return uuid;
 }

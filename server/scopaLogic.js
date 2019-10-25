@@ -41,17 +41,10 @@ class ScopaLogic {
         // Zuletzt gespielte Karte
         this.lastPlayedCard = '';
         // Spieler der zuletzt Karten genommen hat
-        this.lastPlayedPlayer = '';
+        this.lastPlayedPlayer = 'not setted';
         // Karte mischen
         this.shuffleCards(); //TODO: Kann verschoben werden
     }
-
-    // Raum information anpassen
-    updateRoomInfo(aAcutalRoom) {
-        this.room = aAcutalRoom;
-        console.log(this.room.players[1].playerid);
-    }
-
     // Startet das Spiel. (Teilt jeweils 3 Karten den Spielern aus und 4 auf den Tisch.
     startGame() {
         this.tableCards = this.getNextCards(4);
@@ -60,16 +53,22 @@ class ScopaLogic {
         this.player2.id = this.room.players[1].playerId;
         this.player2.actualHandCards = this.getNextCards(3);
 
+        // Player 1 "teilt" Karten aus.
+        this.lastPlayedPlayer = this.player1.id;
+
         let _message = new Message(0);
         _message.playerId = this.player1.id;
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player1.actualHandCards;
+        _message.lastPlayedPlayer = this.lastPlayedPlayer;
+        console.log(this.lastPlayedPlayer)
         this.room.sendToPlayer(_message);
 
         _message = new Message(0);
         _message.playerId = this.player2.id;
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player2.actualHandCards;
+        _message.lastPlayedPlayer = this.lastPlayedPlayer;
         this.room.sendToPlayer(_message);
     }
 
@@ -84,6 +83,7 @@ class ScopaLogic {
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player1.actualHandCards;
         _message.lastPlayedCard = this.lastPlayedCard;
+        _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newRound = true;
         this.room.sendToPlayer(_message);
 
@@ -92,6 +92,7 @@ class ScopaLogic {
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player2.actualHandCards;
         _message.lastPlayedCard = this.lastPlayedCard;
+        _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newRound = true;
         this.room.sendToPlayer(_message);
     }
@@ -102,6 +103,8 @@ class ScopaLogic {
         console.log('nachricht von spieler' + message.playerId + ' in logik empfangen: ' + message.content);
         let _card = message.content;
         let _player = message.playerId == this.player1.id ? this.player1 : this.player2;
+        this.lastPlayedPlayer = _player.id;
+
         this.removeFromArray(_player.actualHandCards, _card);
 
         this.lastPlayedCard = _card;
@@ -139,7 +142,8 @@ class ScopaLogic {
             messageType: 0,
             tableCards: this.tableCards,
             handCards: [],
-            lastPlayedCard: this.lastPlayedCard
+            lastPlayedCard: this.lastPlayedCard,
+            lastPlayedPlayer: this.lastPlayedPlayer
         };
 
         console.log("Sendet an beide die aktuellen Tischkarten " + _gameData.tableCards + "und lastplayedcard " + this.lastPlayedCard);
