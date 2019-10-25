@@ -42,7 +42,7 @@ function startScopa() {
 
     // Überprüft auf Existenz von "WebSeockets" im Browser.
     if (window["WebSocket"]) {
-        websocket.socket = new WebSocket("ws://127.0.0.1:8000");
+        websocket.socket = new WebSocket("ws://192.168.0.17:8000");
 
         // Verbindungsaufbau. Client meldet seine ID und seinen Namen.
         websocket.socket.onopen = function (e) {
@@ -128,28 +128,32 @@ function handleChatMessage(aData) {
 
 // Spiel Daten vom Server verarbeiten
 function handleGameAction(aData) {
-    if (isGameStart) {
-
-        this.tableCardArray = aData.tableCards;
-        this.handCardArray = aData.playerCards;
-
+    if (isGameStart || aData.newRound) {
         console.log("tablecards received:"+this.tableCardArray)
         console.log("tablecards received:"+this.handCardArray)
 
-        for (let i = 0; i < this.tableCardArray.length; i++) {
-            let _card = this.tableCardArray[i];
-            let _cardNumber = _card.toString().split("_")[0];
-            let _cardType = _card.toString().split("_")[1];
-            addCardToTable(_cardNumber, _cardType);
-        }
+        this.handCardArray = aData.playerCards;
         for (let i = 0; i < this.handCardArray.length; i++) {
             let _card = this.handCardArray [i];
             let _cardNumber = _card.toString().split("_")[0];
             let _cardType = _card.toString().split("_")[1];
             addCardToHand(_cardNumber, _cardType);
         }
+
+        // Muss nur nach neuem Mischeln gemacht werden
+        if(!aData.newRound) {
+            this.tableCardArray = aData.tableCards;
+            for (let i = 0; i < this.tableCardArray.length; i++) {
+                let _card = this.tableCardArray[i];
+                let _cardNumber = _card.toString().split("_")[0];
+                let _cardType = _card.toString().split("_")[1];
+                addCardToTable(_cardNumber, _cardType);
+            }
+        }
+
         isGameStart = false;
     } else {
+        lastPlayedCard = aData.lastPlayedCard; // Zuletzt gespielte Karte (spieler1 oder spieler2)
         handleTableCardFromMessage(aData.tableCards, aData.playerCards);
     }
 }
@@ -224,7 +228,8 @@ function selectedCard(id) {
     let _data = {
         messageType: MESSAGE_TYPE.CLIENT_CARD,
         playerId: playerId,
-        content: _imageId
+        content: _imageId,
+        lastPlayedCard: lastPlayedCard
     };
     websocket.socket.send(JSON.stringify(_data));
 }

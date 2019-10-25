@@ -1,103 +1,136 @@
 //TODO: Vater hat gesagt mach eine kuuulee schriftrolle wo die spiu regu drin stöid
 
-scopaCards  = [
-    "1_1","2_1","3_1","4_1","5_1","6_1","7_1","8_1","9_1","10_1",
-    "1_2","2_2","3_2","4_2","5_2","6_2","7_2","8_2","9_2","10_2",
-    "1_3","2_3","3_3","4_3","5_3","6_3","7_3","8_3","9_3","10_3",
-    "1_4","2_4","3_4","4_4","5_4","6_4","7_4","8_4","9_4","10_4"
+scopaCards = [
+    "1_1", "2_1", "3_1", "4_1", "5_1", "6_1", "7_1", "8_1", "9_1", "10_1",
+    "1_2", "2_2", "3_2", "4_2", "5_2", "6_2", "7_2", "8_2", "9_2", "10_2",
+    "1_3", "2_3", "3_3", "4_3", "5_3", "6_3", "7_3", "8_3", "9_3", "10_3",
+    "1_4", "2_4", "3_4", "4_4", "5_4", "6_4", "7_4", "8_4", "9_4", "10_4"
 ];
 
 const Message = require('./message').Message;
 const Combinatorics = require('./combinatorics');
 
-class ScopaLogic{
-    constructor(aRoom){
+class ScopaLogic {
+    constructor(aRoom) {
         // Virtueller Tisch an dem die Spieler sitzen.
         this.room = aRoom;
         // Gemischte Karten der Runde
         this.shuffeldCards = [];
         // Karten auf dem Tisch
         this.tableCards = [];
-        // Spieler 2 aktuelle Karten
-        this.player1Cards = [];
-        // Spieler 1 aktuelle Karten
-        this.player2Cards = [];
-        // Spieler 1 genommene Karten
-        this.takenCardsPlayer1 = [];
-        // Spieler 2 genommene Karten
-        this.takenCardsPlayer2 = [];
-        // Spielrunde
+        // Kartenverteiler
+        this.player1 = {
+            id: '',
+            actualHandCards: [],
+            is_cardShuffler: true,
+            takenCards: [],
+            scopaCount: 0,
+            totalPoints: 0
+        }
+        this.player2 = {
+            id: '',
+            actualHandCards: [],
+            is_cardShuffler: false,
+            takenCards: [],
+            scopaCount: 0,
+            totalPoints: 0
+        }
         this.gameRoundNumber = 1;
         // Satzrunde (wird für das erkennen des Ende einer Gamerunde verwendet)
         this.setRoundNumber = 1;
-        // Karten verteiler
-        this.shufflePlayer = '';
+        // Zuletzt gespielte Karte
+        this.lastPlayedCard = '';
+        // Spieler der zuletzt Karten genommen hat
+        this.lastPlayedPlayer = '';
         // Karte mischen
-        this.shuffleCards();
+        this.shuffleCards(); //TODO: Kann verschoben werden
     }
 
     // Raum information anpassen
-    updateRoomInfo(aAcutalRoom){
+    updateRoomInfo(aAcutalRoom) {
         this.room = aAcutalRoom;
         console.log(this.room.players[1].playerid);
     }
 
-    // Startet ein Duell. Es sind bereits 2 Spieler angemeldet.
-    startGame(){
+    // Startet das Spiel. (Teilt jeweils 3 Karten den Spielern aus und 4 auf den Tisch.
+    startGame() {
         this.tableCards = this.getNextCards(4);
-        this.player1Cards = this.getNextCards(3);
-        this.player2Cards = this.getNextCards(3);
-        this.cardShufflerId = 1;
+        this.player1.id = this.room.players[0].playerId;
+        this.player1.actualHandCards = this.getNextCards(3);
+        this.player2.id = this.room.players[1].playerId;
+        this.player2.actualHandCards = this.getNextCards(3);
 
         let _message = new Message(0);
-        _message.playerId = this.room.players[0].playerId;
+        _message.playerId = this.player1.id;
         _message.tableCards = this.tableCards;
-        _message.playerCards = this.player1Cards;
+        _message.playerCards = this.player1.actualHandCards;
         this.room.sendToPlayer(_message);
 
         _message = new Message(0);
-        _message.playerId = this.room.players[1].playerId;
+        _message.playerId = this.player2.id;
         _message.tableCards = this.tableCards;
-        _message.playerCards = this.player2Cards;
+        _message.playerCards = this.player2.actualHandCards;
         this.room.sendToPlayer(_message);
     }
 
-    // Erstellt anhand der aktuellen Spielsituation eine Message, welche anschliessend an einen Spieler gesendet wird.
-    // TODO: Hier müssen noch weitere Infos wie Spieler, Runden, Zeit ,.. gesetzt werden
-    getGameStateMessage(){
+    playOutCards() {
+        this.player1.id = this.room.players[0].playerId;
+        this.player1.actualHandCards = this.getNextCards(3);
+        this.player2.id = this.room.players[1].playerId;
+        this.player2.actualHandCards = this.getNextCards(3);
+
         let _message = new Message(0);
+        _message.playerId = this.player1.id;
         _message.tableCards = this.tableCards;
-        _message.playerCards = this.player1Cards;
-        return _message;
+        _message.playerCards = this.player1.actualHandCards;
+        _message.lastPlayedCard = this.lastPlayedCard;
+        _message.newRound = true;
+        this.room.sendToPlayer(_message);
+
+        _message = new Message(0);
+        _message.playerId = this.player2.id;
+        _message.tableCards = this.tableCards;
+        _message.playerCards = this.player2.actualHandCards;
+        _message.lastPlayedCard = this.lastPlayedCard;
+        _message.newRound = true;
+        this.room.sendToPlayer(_message);
     }
 
     // Spieler Nachricht verarbeiten. (Aktuell wird nur eine Karte vom Spieler gesendet)
     // TODO: Ev. noch gebrauchte Zeit
-    processPlayerMessage(message,aRoom){
-        console.log('nachricht von spieler in logik empfangen: '+message.content);
+    processPlayerMessage(message, aRoom) {
+        console.log('nachricht von spieler' + message.playerId + ' in logik empfangen: ' + message.content);
         let _card = message.content;
+        let _player = message.playerId == this.player1.id ? this.player1 : this.player2;
+        this.removeFromArray(_player.actualHandCards, _card);
+
+        this.lastPlayedCard = _card;
         // 1. Fall: Gleiche Karte
         let sameCards = this.checkCardNumberIsOnTable(_card);
         // 2. Fall: Kombinationen zur Karte
         let _cardCombinations = this.getPossibleCardCombinationWithCard(_card);
 
-        // TODO nicht nur für gleiche Karten & nicht nur erste Karte
-        if(sameCards.length > 0) {
-            // TODO Karte zu Spieler Konto
+        // TODO: prio 2 Auswahl? für gleiche Karten & nicht nur erste Karte
+        if (sameCards.length > 0) {
+            // Gepsielte Karte aufs Konto.
+            this.addCardToAccount(message.playerId, _card);
+            // Karte mit gleicher anzahl Augen aufs Konto.
+            this.addCardToAccount(message.playerId, sameCards[0]);
+
             // Spieler kann Karte nehmen.
             this.removeFromArray(this.tableCards, sameCards[0]);
-        }else if(_cardCombinations.length > 0){
-            // TODO Karte zu Spieler Konto
+        } else if (_cardCombinations.length > 0) {
+            // Gepsielte Karte aufs Konto.
+            this.addCardToAccount(message.playerId, _card);
             // Spieler kann Karte nehmen.
-            console.log(_cardCombinations);
 
-            // TODO: _cardCombinations[0] aktuell nur erst bester genommen
-            // TODO: Zum aktuellen Spieler hinzufügen
+            // TODO: prio 2 _cardCombinations[0] aktuell nur erst bester genommen
             let _cardsToRemove = _cardCombinations[0];
-            for (let element in _cardsToRemove){
+            for (let element in _cardsToRemove) {
+                this.addCardToAccount(message.playerId, _cardsToRemove[element]);
                 this.removeFromArray(this.tableCards, _cardsToRemove[element]);
             }
-        }else{
+        } else {
             // Karte kann nicht genommen werden.
             this.tableCards.push(_card);
         }
@@ -106,10 +139,28 @@ class ScopaLogic{
             messageType: 0,
             tableCards: this.tableCards,
             handCards: [],
+            lastPlayedCard: this.lastPlayedCard
         };
 
-        console.log("server daten sendet folgende tisch karten"+_gameData.tableCards)
+        console.log("Sendet an beide die aktuellen Tischkarten " + _gameData.tableCards + "und lastplayedcard " + this.lastPlayedCard);
         aRoom.sendAll(JSON.stringify(_gameData));
+
+        if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
+            this.setRoundNumber += 1;
+            if (this.setRoundNumber !== 7) { // TODO: hier muss 6 wieder rein
+                this.playOutCards();
+            } else {
+                // Teilt die Tischkarten dem Spieler zu welcher zuletzt genommen hat.
+                this.distributeLastTableCards();
+
+                console.log("P1 Karte "+this.player1.takenCards);
+                console.log("P2 Karte "+this.player2.takenCards);
+
+                // Zählt
+                this.countPlayerRoundPoints();
+
+            }
+        }
     }
 
     // Gibt gemischte Karten
@@ -123,7 +174,7 @@ class ScopaLogic{
     }
 
     // Karten mischen
-    shuffleCards(){
+    shuffleCards() {
         this.shuffeldCards = scopaCards.slice();
         this.shuffeldCards = this.shuffle(this.shuffeldCards);
     }
@@ -148,7 +199,7 @@ class ScopaLogic{
     }
 
     // Gibt die unterschiede von 2 Array zurück
-    getArrayDiffrence (a1, a2) {
+    getArrayDiffrence(a1, a2) {
         let a = [], diff = [];
 
         for (let i = 0; i < a1.length; i++) {
@@ -171,15 +222,14 @@ class ScopaLogic{
     }
 
     // Gibt zurück ob sich die gleiche Karte einer anderen Farbe auf dem Tisch liegt
-    checkCardNumberIsOnTable(aCard){
-        let cardNumber = aCard.length ===3 ?aCard.charAt(0):aCard.charAt(0)+ aCard.charAt(1);
+    checkCardNumberIsOnTable(aCard) {
+        let cardNumber = aCard.length === 3 ? aCard.charAt(0) : aCard.charAt(0) + aCard.charAt(1);
         let choosableCards = []
 
-        for (let tableCard in this.tableCards){
+        for (let tableCard in this.tableCards) {
             var _card = this.tableCards[tableCard];
-            var _tableCardNumber =  _card.length ===3 ?_card.charAt(0):_card.charAt(0)+ _card.charAt(1);
-            console.log("TABLECARDNUMBER: "+_tableCardNumber);
-            if(_tableCardNumber == cardNumber){
+            var _tableCardNumber = _card.length === 3 ? _card.charAt(0) : _card.charAt(0) + _card.charAt(1);
+            if (_tableCardNumber == cardNumber) {
                 // Zu möglichen gleichen Karten hinzufügen
                 choosableCards.push(this.tableCards[tableCard]);
             }
@@ -187,68 +237,243 @@ class ScopaLogic{
         return choosableCards;
     }
 
-    getPossibleCardCombinationWithCard(aCard){
+    getPossibleCardCombinationWithCard(aCard) {
         let _result = [];
-        let _cardValue = parseInt(aCard.charAt(0)+aCard.charAt(1));
+        let _cardValue = parseInt(aCard.charAt(0) + aCard.charAt(1));
         let _allCombinations = this.getAllCardCombinations();
-        console.log("das sit der Wert der KArte: "+_cardValue)
 
-        for (let combination in _allCombinations){
+        for (let combination in _allCombinations) {
             let _combination = _allCombinations[combination];
 
-            if(_combination.length <= 1){
+            if (_combination.length <= 1) {
                 continue;
             }
 
             let sum = 0;
             let cardComboIds = []
-            for (let entry in _combination){
+            for (let entry in _combination) {
                 sum += parseInt(_combination[entry].cardValue);
                 cardComboIds.push(_combination[entry].cardId);
             }
 
-            if(sum === _cardValue){
+            if (sum === _cardValue) {
                 _result.push(cardComboIds);
             }
         }
-
         return _result;
     }
 
     // Gibt mögliche Karten-Kombinationen, welche in der Summe den Wert der Karte ergeben.
-    getAllCardCombinations(){
+    getAllCardCombinations() {
         let _tableCardWithValues = this.getActualTableCardIdsWithValue();
         let cmb = Combinatorics.power(_tableCardWithValues);
         return cmb.toArray();
     }
 
     // Löscht ein Element aus Array (TableCard, HandCard)
-    removeFromArray(aArray, aElemnt){
-        for( let i = 0; i < aArray.length; i++){
-            console.log(aArray[i]+" "+aElemnt)
-            if ( aArray[i] === aElemnt) {
+    removeFromArray(aArray, aElemnt) {
+        for (let i = 0; i < aArray.length; i++) {
+            if (aArray[i] === aElemnt) {
                 aArray.splice(i, 1);
             }
         }
     }
 
     // Gibt die aktuellen Tischkarten mit deren Wert zurück.
-    getActualTableCardIdsWithValue(){
+    getActualTableCardIdsWithValue() {
         let tableCardsWithValue = [];
 
-        for (let tableCard in this.tableCards){
-            if(!this.tableCards.hasOwnProperty(tableCard)){
+        for (let tableCard in this.tableCards) {
+            if (!this.tableCards.hasOwnProperty(tableCard)) {
                 continue;
             }
 
             let _cardId = this.tableCards[tableCard];
             tableCardsWithValue.push({
                 cardId: _cardId,
-                cardValue: _cardId.length === 3?_cardId.charAt(0):_cardId.charAt(0)+_cardId.charAt(1)
+                cardValue: _cardId.length === 3 ? _cardId.charAt(0) : _cardId.charAt(0) + _cardId.charAt(1)
             });
         }
 
         return tableCardsWithValue;
     }
+
+    // Fügt Karte zum Account hinzu.
+    addCardToAccount(aPlayerId, aCard) {
+        let _player = aPlayerId == this.player1.id ? this.player1 : this.player2;
+        _player.takenCards.push(aCard);
+
+        console.log("");
+        console.log("Spielzustand:");
+        console.log("Spieler 1 : genommene Karten : " + this.player1.takenCards + " Karten in der Hand:" + this.player1.actualHandCards);
+        console.log("Spieler 2 : genommene Karten : " + this.player2.takenCards + " Karten in der Hand:" + this.player2.actualHandCards);
+        console.log("Tisch Karten: " + this.tableCards);
+        console.log("");
+    }
+
+    // Verteilt die Punkte für eine Runde
+    countPlayerRoundPoints() {
+        // Scopa Punkt
+        this.calculateScopaPoint();
+
+        // Karten-Punkt
+        this.calculateCardPoint();
+
+        // Denari Punkt
+        this.calculateDenariPoint();
+
+        // Settebello Punkt
+        this.calculateSetteBelloPoint();
+
+        // Settanta Punkt
+        this.calculalteSettantaPoint();
+
+        console.log("Actual Points P1:" + this.player1.totalPoints)
+        console.log("Actual Points P2:" + this.player2.totalPoints)
+
+        this.player1.takenCards = [];
+        this.player1.actualHandCards = [];
+        this.player2.takenCards = [];
+        this.player2.actualHandCards = [];
+    }
+
+    calculateScopaPoint() {
+        this.player1.totalPoints += this.player1.scopaCount;
+        this.player1.totalPoints += this.player1.scopaCount;
+        this.player1.scopaCount = 0;
+        this.player1.scopaCount = 0;
+    }
+
+    calculateCardPoint() {
+        if (this.player1.takenCards.length == 20) {
+            // Punkt Entfällt
+        }
+        if (this.player1.takenCards.length > 20) {
+            this.player1.totalPoints += 1;
+        } else {
+            this.player2.totalPoints += 1;
+        }
+    }
+
+    calculateDenariPoint() {
+        let _denariCount = 0;
+        for (let i = 0; i < this.player1.takenCards.length; i++) {
+
+            let _card = this.player1.takenCards[i];
+            let _color = _card.length === 3 ? _card.charAt(2) : _card.charAt(3);
+
+            if (_color === "1") {
+                _denariCount++;
+            }
+        }
+
+        if (_denariCount === 5) {
+            // Punkt entfällt
+        } else if (_denariCount > 5) {
+            console.log("Denari P1")
+            this.player1.totalPoints++;
+        } else {
+            this.player2.totalPoints++;
+            console.log("Denari P2")
+
+        }
+    }
+
+    calculateSetteBelloPoint() {
+        let _setteBelloFound = false;
+        for (let i = 0; i < this.player1.takenCards.length; i++) {
+            let _card = this.player1.takenCards[i];
+            if (_card == '7_1') {
+                _setteBelloFound = true;
+                break;
+            }
+        }
+
+        if (_setteBelloFound) {
+            console.log("Settebello P1")
+            this.player1.totalPoints++;
+        } else {
+            console.log("Settebello P2")
+            this.player2.totalPoints++;
+        }
+    }
+
+    calculalteSettantaPoint() {
+
+        let _player1Cards = this.player1.takenCards;
+        let _pointsDenaro = this.getPointsFromColor(_player1Cards, "1");
+        let _pointsCope = this.getPointsFromColor(_player1Cards, "2");
+        let _pointsBastoni = this.getPointsFromColor(_player1Cards, "3");
+        let _pointsSpade = this.getPointsFromColor(_player1Cards, "4");
+        let _pointSumPlayer1 = _pointsDenaro + _pointsCope + _pointsBastoni + _pointsSpade;
+
+        let _player2Cards = this.player2.takenCards;
+        _pointsDenaro = this.getPointsFromColor(_player2Cards, "1");
+        _pointsCope = this.getPointsFromColor(_player2Cards, "2");
+        _pointsBastoni = this.getPointsFromColor(_player2Cards, "3");
+        _pointsSpade = this.getPointsFromColor(_player2Cards, "4");
+        let _pointSumPlayer2 = _pointsDenaro + _pointsCope + _pointsBastoni + _pointsSpade;
+
+        console.log("setttanta punkte: p1: " + _pointSumPlayer1 + " p2 " + _pointSumPlayer2);
+
+        if (_pointSumPlayer1 === _pointSumPlayer2) {
+            // Punkt entfällt
+        } else if (_pointSumPlayer1 > _pointSumPlayer2) {
+            console.log("Settanta P1")
+            this.player1.totalPoints++;
+        } else {
+            console.log("Settanta P2")
+            this.player2.totalPoints++;
+        }
+    }
+
+    getPointsFromColor(aArray, aColor) {
+        let _cardNumbers = [];
+
+        for (let i = 0; i < aArray.length; i++) {
+            let _card = aArray[i];
+            let _color = _card.length === 3 ? _card.charAt(2) : _card.charAt(3);
+
+            if (_color === aColor) {
+                let _cardNumber = _card.length === 3 ? _card.charAt(0) : _card.charAt(0) + _card.charAt(1);
+                _cardNumbers.push(_cardNumber);
+            }
+        }
+
+        if (_cardNumbers.includes("7")) {
+            return 21;
+        } else if (_cardNumbers.includes("6")) {
+            return 18
+        } else if (_cardNumbers.includes("1")) {
+            return 16;
+        } else if (_cardNumbers.includes("5")) {
+            return 15;
+        } else if (_cardNumbers.includes("4")) {
+            return 14;
+        } else if (_cardNumbers.includes("3")) {
+            return 13;
+        } else if (_cardNumbers.includes("2")) {
+            return 12;
+        } else if(_cardNumbers.includes("8")||_cardNumbers.includes("9")||_cardNumbers.includes("10")){
+            return 10;
+        }else{
+            return 0;
+        }
+    }
+
+    distributeLastTableCards(){
+        let _playerId = '';
+
+        if(this.lastPlayedPlayer == this.player1.id){
+            _playerId = this.player1.id;
+        }else{
+            _playerId = this.player2.id;
+        }
+
+        for (let i = 0; i < this.tableCards.length; i++) {
+            this.addCardToAccount(_playerId,this.tableCards[i]);
+        }
+    }
 }
+
 module.exports.ScopaLogic = ScopaLogic;
