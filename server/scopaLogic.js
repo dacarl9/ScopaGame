@@ -155,7 +155,7 @@ class ScopaLogic {
 
         if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
             this.setRoundNumber += 1;
-            if (this.setRoundNumber !== 7) { // TODO: hier muss 6 wieder rein
+            if (this.setRoundNumber !== 2) { // TODO: hier muss 6 wieder rein
                 this.playOutCards();
             } else {
                 // Teilt die Tischkarten dem Spieler zu welcher zuletzt genommen hat.
@@ -512,10 +512,12 @@ class ScopaLogic {
         if(this.player1.totalPoints > this.player2.totalPoints && this.player1.totalPoints >=11){
             // Player 1 gewonnen sachen machen
            this.winnerId= this.player1.id;
+           console.log("this.winner ID: " +this.winnerId)
         }
 
-        if(this.player2.totalPoints > this.player1.totalPoints && this.player1.totalPoints >=11){
+        if(this.player2.totalPoints > this.player1.totalPoints && this.player2.totalPoints >=11){
             this.winnerId = this.player2.id;
+            console.log("this.winner ID: " +this.winnerId)
         }
     }
 }

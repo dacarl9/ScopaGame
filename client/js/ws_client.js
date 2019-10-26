@@ -270,9 +270,16 @@ function waitOnRivalNotification() {
     audio.play();
 }
 
-function handleWinMessage(aWinnnerId) {
-
-
+function handleWinAction(aWinnnerId) {
+    if(playerId === aWinnnerId){
+        $("#win_info").show(0).delay(5000).hide(0);
+        var audio = new Audio('media/applause.mp3');
+        audio.play();
+    }else {
+        $("#loose_info").show(0).delay(5000).hide(0);
+        var audio = new Audio('media/loose.mp3');
+        audio.play();
+    }
 }
 
 // Generierung einer UUID.
