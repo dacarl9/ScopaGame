@@ -33,23 +33,25 @@ class ScopaLogic {
             is_cardShuffler: false,
             takenCards: [],
             scopaCount: 0,
-            totalPoints: 11
+            totalPoints: 0
         }
-        this.gameRoundNumber = 1;
+        this.gameRoundNumber = 0;
         // Satzrunde (wird für das erkennen des Ende einer Gamerunde verwendet)
         this.setRoundNumber = 1;
         // Zuletzt gespielte Karte
         this.lastPlayedCard = '';
         // Spieler der zuletzt Karten genommen hat
         this.lastPlayedPlayer = 'not setted';
-        // Karte mischen
-        this.shuffleCards(); //TODO: Kann verschoben werden
-
         this.winnerId = null;
+        this.overViewInfo = [];
     }
 
     // Startet das Spiel. (Teilt jeweils 3 Karten den Spielern aus und 4 auf den Tisch.
     startGame() {
+        this.gameRoundNumber++;
+        // Karte mischen
+        this.shuffleCards(); //TODO: Kann verschoben werden
+
         this.tableCards = this.getNextCards(4);
         this.player1.id = this.room.players[0].playerId;
         this.player1.actualHandCards = this.getNextCards(3);
@@ -64,7 +66,7 @@ class ScopaLogic {
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player1.actualHandCards;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
-        console.log(this.lastPlayedPlayer)
+        _message.newRound =true;
         this.room.sendToPlayer(_message);
 
         _message = new Message(0);
@@ -72,6 +74,7 @@ class ScopaLogic {
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player2.actualHandCards;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
+        _message.newRound =true;
         this.room.sendToPlayer(_message);
     }
 
@@ -150,36 +153,49 @@ class ScopaLogic {
             lastPlayedPlayer: this.lastPlayedPlayer
         };
 
+        // Scopa
+        if(this.tableCards.length==0){
+            this.addScopaPoint();
+        }
+
         console.log("Sendet an beide die aktuellen Tischkarten " + _gameData.tableCards + "und lastplayedcard " + this.lastPlayedCard);
         aRoom.sendAll(JSON.stringify(_gameData));
 
         if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
             this.setRoundNumber += 1;
-            if (this.setRoundNumber !== 2) { // TODO: hier muss 6 wieder rein
+            if (this.setRoundNumber !== 2) {
                 this.playOutCards();
             } else {
                 // Teilt die Tischkarten dem Spieler zu welcher zuletzt genommen hat.
                 this.distributeLastTableCards();
 
-                console.log("P1 Karte "+this.player1.takenCards);
-                console.log("P2 Karte "+this.player2.takenCards);
+                console.log("P1 Karte " + this.player1.takenCards);
+                console.log("P2 Karte " + this.player2.takenCards);
 
-                // Zählt
+                // Zählt die Punkte für die Aktuelle Runde
                 this.countPlayerRoundPoints();
 
+                // Ermittelt einen Sieger und speichert diesen
                 this.checkWinner();
 
-                if(this.winnerId){ // TODO ! wegnehmen
-                    let _winnerPlayer = this.winnerId == this.player1.id ? this.player1: this.player2;
+                if (this.winnerId) { // TODO ! wegnehmen
+                   // let _winnerPlayer = this.winnerId == this.player1.id ? this.player1 : this.player2;
 
-                    var _winMessage = {
+                    let _winMessage = {
                         messageType: 4,
                         winnerId: this.winnerId
                     };
 
                     this.room.sendAll(JSON.stringify(_winMessage));
+                } else {
+                    this.sendOverViewMessage();
+                    this.startGame();
+                    console.log("should be new game...")
                 }
 
+
+                // Löscht Daten vor  neuer Runde
+                this.cleanRoundData();
                 this.setRoundNumber = 1;
                 this.gameRoundNumber++;
             }
@@ -200,6 +216,7 @@ class ScopaLogic {
     shuffleCards() {
         this.shuffeldCards = scopaCards.slice();
         this.shuffeldCards = this.shuffle(this.shuffeldCards);
+        console.log("neu mischenln...")
     }
 
     // Misch Algorithmus
@@ -336,9 +353,6 @@ class ScopaLogic {
 
     // Verteilt die Punkte für eine Runde
     countPlayerRoundPoints() {
-        // Scopa Punkt
-        this.calculateScopaPoint();
-
         // Karten-Punkt
         this.calculateCardPoint();
 
@@ -351,30 +365,27 @@ class ScopaLogic {
         // Settanta Punkt
         this.calculalteSettantaPoint();
 
-        console.log("Actual Points P1:" + this.player1.totalPoints)
-        console.log("Actual Points P2:" + this.player2.totalPoints)
-
-        this.player1.takenCards = [];
-        this.player1.actualHandCards = [];
-        this.player2.takenCards = [];
-        this.player2.actualHandCards = [];
-    }
-
-    calculateScopaPoint() {
-        this.player1.totalPoints += this.player1.scopaCount;
-        this.player1.totalPoints += this.player1.scopaCount;
-        this.player1.scopaCount = 0;
-        this.player1.scopaCount = 0;
+        console.log("Actual Points P1:" + this.player1.totalPoints);
+        console.log("Actual Points P2:" + this.player2.totalPoints);
     }
 
     calculateCardPoint() {
         if (this.player1.takenCards.length == 20) {
             // Punkt Entfällt
+            this.overViewInfo.push({
+                cardPoint: ''
+            });
         }
         if (this.player1.takenCards.length > 20) {
             this.player1.totalPoints += 1;
+            this.overViewInfo.push({
+                cardPoint: this.player1.id
+            });
         } else {
             this.player2.totalPoints += 1;
+            this.overViewInfo.push({
+                cardPoint: this.player2.id
+            });
         }
     }
 
@@ -392,13 +403,21 @@ class ScopaLogic {
 
         if (_denariCount === 5) {
             // Punkt entfällt
+            this.overViewInfo.push({
+                denariPoint: ''
+            });
         } else if (_denariCount > 5) {
             console.log("Denari P1")
             this.player1.totalPoints++;
+            this.overViewInfo.push({
+                denariPoint: this.player1.id
+            });
         } else {
             this.player2.totalPoints++;
             console.log("Denari P2")
-
+            this.overViewInfo.push({
+                denariPoint: this.player2.id
+            });
         }
     }
 
@@ -415,9 +434,15 @@ class ScopaLogic {
         if (_setteBelloFound) {
             console.log("Settebello P1")
             this.player1.totalPoints++;
+            this.overViewInfo.push({
+                settebelloPoint: this.player1.id
+            });
         } else {
             console.log("Settebello P2")
             this.player2.totalPoints++;
+            this.overViewInfo.push({
+                settebelloPoint: this.player2.id
+            });
         }
     }
 
@@ -441,12 +466,21 @@ class ScopaLogic {
 
         if (_pointSumPlayer1 === _pointSumPlayer2) {
             // Punkt entfällt
+            this.overViewInfo.push({
+                settantaPoint: ''
+            });
         } else if (_pointSumPlayer1 > _pointSumPlayer2) {
             console.log("Settanta P1")
             this.player1.totalPoints++;
+            this.overViewInfo.push({
+                settantaPoint: this.player1.id
+            });
         } else {
             console.log("Settanta P2")
             this.player2.totalPoints++;
+            this.overViewInfo.push({
+                settantaPoint: this.player2.id
+            });
         }
     }
 
@@ -477,47 +511,98 @@ class ScopaLogic {
             return 13;
         } else if (_cardNumbers.includes("2")) {
             return 12;
-        } else if(_cardNumbers.includes("8")||_cardNumbers.includes("9")||_cardNumbers.includes("10")){
+        } else if (_cardNumbers.includes("8") || _cardNumbers.includes("9") || _cardNumbers.includes("10")) {
             return 10;
-        }else{
+        } else {
             return 0;
         }
     }
 
-    distributeLastTableCards(){
+    distributeLastTableCards() {
         let _playerId = '';
 
-        if(this.lastPlayedPlayer == this.player1.id){
+        if (this.lastPlayedPlayer == this.player1.id) {
             _playerId = this.player1.id;
-        }else{
+        } else {
             _playerId = this.player2.id;
         }
 
         for (let i = 0; i < this.tableCards.length; i++) {
-            this.addCardToAccount(_playerId,this.tableCards[i]);
+            this.addCardToAccount(_playerId, this.tableCards[i]);
         }
     }
 
-    checkWinner(){
+    checkWinner() {
         // Beide Spieler haben noch nicht 11
-        if(this.player1.totalPoints < 11 && this.player2.totalPoints < 11 ){
+        if (this.player1.totalPoints < 11 && this.player2.totalPoints < 11) {
             return;
         }
 
         // Beide Spieler haben gleich viele Punkte
-        if(this.player1.totalPoints === this.player2.totalPoints){
+        if (this.player1.totalPoints === this.player2.totalPoints) {
             return;
         }
 
-        if(this.player1.totalPoints > this.player2.totalPoints && this.player1.totalPoints >=11){
+        if (this.player1.totalPoints > this.player2.totalPoints && this.player1.totalPoints >= 11) {
             // Player 1 gewonnen sachen machen
-           this.winnerId= this.player1.id;
-           console.log("this.winner ID: " +this.winnerId)
+            this.winnerId = this.player1.id;
+            console.log("this.winner ID: " + this.winnerId)
         }
 
-        if(this.player2.totalPoints > this.player1.totalPoints && this.player2.totalPoints >=11){
+        if (this.player2.totalPoints > this.player1.totalPoints && this.player2.totalPoints >= 11) {
             this.winnerId = this.player2.id;
-            console.log("this.winner ID: " +this.winnerId)
+            console.log("this.winner ID: " + this.winnerId)
+        }
+    }
+
+    cleanRoundData() {
+        this.shuffeldCards = [];
+        this.player1.takenCards = [];
+        this.player1.actualHandCards = [];
+        this.player2.takenCards = [];
+        this.player2.actualHandCards = [];
+        this.player1.scopaCount = 0;
+        this.player1.scopaCount = 0;
+    }
+
+    sendOverViewMessage() {
+
+        // Scopa Punkt hinzufügen
+        this.overViewInfo.push({
+            scopaPoints: [{
+                id: this.player1.id,
+                scopaCount: this.player1.scopaCount
+            }, {
+                id: this.player2.id,
+                scopaCount: this.player2.scopaCount
+            }]
+        });
+
+        // Total Punkt hinzufügen
+        this.overViewInfo.push({
+            totalPoints: [{
+                id: this.player1.id,
+                totalCount: this.player1.totalPoints,
+            }, {
+                id: this.player2.id,
+                totalCount: this.player2.totalPoints,
+            }]
+        });
+
+        let _message = {
+            messageType: 5,
+            overViewInfo: this.overViewInfo
+        };
+
+        this.room.sendAll(JSON.stringify(_message));
+        this.overViewInfo = [];
+    }
+
+    addScopaPoint(){
+        if(this.lastPlayedPlayer == this.player1.id){
+            this.player1.scopaCount++;
+        }else{
+            this.player2.scopaCount++;
         }
     }
 }

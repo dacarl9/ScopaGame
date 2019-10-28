@@ -123,9 +123,17 @@ body {
     top: 50%;
     left:50%;
 }
-#wait_info, #scopa_info, #win_info,#loose_info{
+#wait_info,#scopa_info, #win_info,#loose_info{
     text-align: center;
+    position:absolute;
     display: none;
+    z-index: 2;
+    width: 100%;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
 }
 .info, .success, .warning, .error {
     border: 1px solid;
@@ -147,6 +155,40 @@ body {
 .error {
     color: #D8000C;
     background-color: #FFBABA;
+}
+#game_overview{
+    z-index: 3;
+    width: 50%;
+    height: 60%;
+    background-color: black;
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    border-color: #D2B48C;
+    border-width: 20px;
+    border-style: solid;
+    border-radius: 25px;
+    display: none;
+}
+
+#table_overview{
+    color: white;
+    width:100%;
+    text-align: center;
+    font-family: "Comic Sans MS";
+    font-size: larger;
+}
+td:first-child {
+    border-right: 3px solid;
+}
+td:last-child{
+    border-left: 3px solid;
+}
+td {
+    width: 33.33% ;
 }
 @keyframes shake {
     0% { transform: translate(1px, 1px) rotate(0deg); }

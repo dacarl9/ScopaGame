@@ -4,65 +4,107 @@
     <meta charset="utf-8">
     <title>Scopa</title>
     <link rel="stylesheet" href="css/scopa.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
 
-    <div id="login">
-        <form id="formPlayerName">
-            <div id="nameSetter">
-                <label for="userName">Spielername:</label><br>
-                <input type="text" id="userName" name="user_name">
-                <input type="submit">
-            </div>
-        </form>
+<div id="login">
+    <form id="formPlayerName">
+        <div id="nameSetter">
+            <label for="userName">Spielername:</label><br>
+            <input type="text" id="userName" name="user_name">
+            <input type="submit">
+        </div>
+    </form>
 
-    </div>
-    <div id="scopa_info" >
-        <p class="success">!!! Scopa !!!</p>
-    </div>
-    <div id="wait_info" >
-        <p class="warning">Auf Gegner warten</p>
-    </div>
-    <div id="win_info" >
-        <p class="success">Herzlichen Glückwunsch Sie haben gewonnen.</p>
-    </div>
-    <div id="loose_info" >
-        <p class="error">Verloren</p>
-    </div>
-    <div id="game" >
-        <div id="playground">
-            <div id="chat-widnow">
-                <div id="title_bar">Chat
-                    <div id="title-button">-</div>
-                </div>
-                <div id="chat-box">
-                    <form id="chat-form">
-                        <div class="form-group">
-                            <label for="chat-history">Verlauf:</label>
-                            <textarea class="form-control" rows="5"  id="chat-history" disabled></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="chat-input">Neue Nachricht:</label>
-                            <input type="text" id="chat-input" autofocus autocomplete="off" class="form-control">
-                        </div>
-                        <div class="buttonHolder">
-                            <button type="button" value="Send" id="send" class="btn btn-primary">Senden</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+</div>
+<div id="scopa_info">
+    <p class="success">!!! Scopa !!!</p>
+</div>
+<div id="wait_info">
+    <p class="warning">Auf Gegner warten</p>
+</div>
+<div id="win_info">
+    <p class="success">Herzlichen Glückwunsch Sie haben gewonnen.</p>
+</div>
+<div id="loose_info">
+    <p class="error">Verloren</p>
+</div>
 
-            <div id="table">
-            </div>
+<div id="game_overview">
+    <!----    <table id="table_overview">
+    <tr>
+            <th>Ich</th>
+            <th>Punkt</th>
+            <th>Gegner</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Karten</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>0</td>
+            <td>Denari</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Settebello</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Settanta</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Scopa</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Total</td>
+            <td>0</td>
+        </tr>
+    </table>-->
+</div>
 
-            <div id="hand">
+<div id="game">
+    <div id="playground">
+        <div id="chat-widnow">
+            <div id="title_bar">Chat
+                <div id="title-button">-</div>
+            </div>
+            <div id="chat-box">
+                <form id="chat-form">
+                    <div class="form-group">
+                        <label for="chat-history">Verlauf:</label>
+                        <textarea class="form-control" rows="5" id="chat-history" disabled></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="chat-input">Neue Nachricht:</label>
+                        <input type="text" id="chat-input" autofocus autocomplete="off" class="form-control">
+                    </div>
+                    <div class="buttonHolder">
+                        <button type="button" value="Send" id="send" class="btn btn-primary">Senden</button>
+                    </div>
+                </form>
             </div>
         </div>
+
+        <div id="table">
+        </div>
+
+        <div id="hand">
+        </div>
     </div>
-    <footer>
-    </footer>
-    <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
-    <script src="js/ws_client.js"></script>
+</div>
+<footer>
+</footer>
+<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+<script src="js/ws_client.js"></script>
 </body>
 </html>

@@ -5,7 +5,8 @@ const MESSAGE_TYPE = {
     CLIENT_CARD: 1,
     CLIENT_CHAT: 2,
     CLIENT_STATE: 3,
-    WIN_MESSAGE:4
+    WIN_MESSAGE: 4,
+    OVERVIEW_MESSAGE: 5
 };
 
 let tableCardArray = [];
@@ -19,6 +20,7 @@ let startDate = new Date();
 let endDate = new Date();
 let roundNumber = 1;
 
+// Startfunktion
 $(function () {
     //TODO: Nach Deployment wieder einfügen
     // $("#formPlayerName" ).submit(function( event ) {
@@ -64,8 +66,10 @@ function startScopa() {
             if (_data.messageType === MESSAGE_TYPE.SERVER_MESSAGE) {
                 // Spiel Informations-Nachricht
                 handleGameAction(_data);
-            }else if(_data.messageType === MESSAGE_TYPE.WIN_MESSAGE){
+            } else if (_data.messageType === MESSAGE_TYPE.WIN_MESSAGE) {
                 handleWinAction(_data.winnerId)
+            } else if(_data.messageType === MESSAGE_TYPE.OVERVIEW_MESSAGE){
+                showGameOverview(_data);
             }else {
                 // Chat Nachricht
                 handleChatMessage(_data);
@@ -150,7 +154,7 @@ function handleGameAction(aData) {
         }
 
         // Muss nur nach neuem Mischeln gemacht werden
-        if (!aData.newRound) {
+        if (isGameStart) {
             this.tableCardArray = aData.tableCards;
             for (let i = 0; i < this.tableCardArray.length; i++) {
                 let _card = this.tableCardArray[i];
@@ -271,15 +275,87 @@ function waitOnRivalNotification() {
 }
 
 function handleWinAction(aWinnnerId) {
-    if(playerId === aWinnnerId){
+    if (playerId === aWinnnerId) {
         $("#win_info").show(0).delay(5000).hide(0);
         var audio = new Audio('media/applause.mp3');
         audio.play();
-    }else {
+    } else {
         $("#loose_info").show(0).delay(5000).hide(0);
         var audio = new Audio('media/loose.mp3');
         audio.play();
     }
+}
+
+function showGameOverview(aData) {
+    let data = this.createOverViewArray(aData.overViewInfo);
+
+
+    let html = '<table id="table_overview"> <tr>\n' +
+        '            <th>Ich</th>\n' +
+        '            <th>Punkt</th>\n' +
+        '            <th>Gegner</th>\n' +
+        '        </tr>';
+    for (var i = 0, len = data.length; i < len; ++i) {
+        html += '<tr>';
+        for (var j = 0, rowLen = data[i].length; j < rowLen; ++j) {
+            if (j == rowLen - 1) {
+                if (i == 0) {
+                    html += '<td>' + 'Karten' + '</td>';
+                } else if (i == 1) {
+                    html += '<td>' + 'Denari' + '</td>';
+                } else if (i == 2) {
+                    html += '<td>' + 'Settebello' + '</td>';
+                }else if (i == 3) {
+                    html += '<td>' + 'Settanta' + '</td>';
+                }else if (i == 4) {
+                    html += '<td>' + 'Scopa' + '</td>';
+                }else  {
+                    html += '<td>' + 'Total' + '</td>';
+                }
+            }
+            html += '<td>' + data[i][j] + '</td>';
+        }
+        html += "</tr>";
+    }
+    html += '</table>';
+
+    $(html).appendTo('#game_overview');
+    $("#game_overview").show(0).delay(20000).hide(0);
+}
+
+function createOverViewArray(aData){
+    var _overView = [];
+
+    aData[0].cardPoint == playerId ? _overView.push([1,0]):_overView.push([0,1]);
+    aData[1].denariPoint == playerId ? _overView.push([1,0]):_overView.push([0,1]);
+    aData[2].settebelloPoint ? _overView.push([1,0]):_overView.push([0,1]);
+    aData[3].settantaPoint == playerId ? _overView.push([1,0]):_overView.push([0,1]);
+
+    let _myScopaPoints;
+    let _otherScopaPoints
+
+    if(aData[4].scopaPoints[0].id == playerId){
+        _myScopaPoints = aData[4].scopaPoints[0].scopaCount;
+        _otherScopaPoints = aData[4].scopaPoints[1].scopaCount;
+    }else{
+        _myScopaPoints= aData[4].scopaPoints[1].scopaCount;
+        _otherScopaPoints = aData[4].scopaPoints[0].scopaCount;
+    }
+    _overView.push([_myScopaPoints,_otherScopaPoints]);
+
+    let _myTotalPoints;
+    let _otherTotalPoints;
+
+    if(aData[5].totalPoints[0].id == playerId){
+        _myTotalPoints = aData[5].totalPoints[0].totalCount;
+        _otherTotalPoints = aData[5].totalPoints[1].totalCount;
+    }else{
+        _myTotalPoints= aData[5].totalPoints[1].totalCount;
+        _otherTotalPoints = aData[5].totalPoints[0].totalCount;
+    }
+    _overView.push([_myTotalPoints,_otherTotalPoints]);
+
+    return _overView;
 }
 
 // Generierung einer UUID.
