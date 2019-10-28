@@ -41,7 +41,7 @@ class ScopaLogic {
         // Zuletzt gespielte Karte
         this.lastPlayedCard = '';
         // Spieler der zuletzt Karten genommen hat
-        this.lastPlayedPlayer = 'not setted';
+        this.lastPlayedPlayer = null;
         this.winnerId = null;
         this.overViewInfo = [];
     }
@@ -59,14 +59,14 @@ class ScopaLogic {
         this.player2.actualHandCards = this.getNextCards(3);
 
         // Player 1 "teilt" Karten aus.
-        this.lastPlayedPlayer = this.player1.id;
+        this.lastPlayedPlayer = this.player1.id;//TODO analyse id
 
         let _message = new Message(0);
         _message.playerId = this.player1.id;
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player1.actualHandCards;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
-        _message.newRound =true;
+        _message.newGameRound = true;
         this.room.sendToPlayer(_message);
 
         _message = new Message(0);
@@ -74,7 +74,7 @@ class ScopaLogic {
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player2.actualHandCards;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
-        _message.newRound =true;
+        _message.newGameRound = true;
         this.room.sendToPlayer(_message);
     }
 
@@ -154,7 +154,7 @@ class ScopaLogic {
         };
 
         // Scopa
-        if(this.tableCards.length==0){
+        if (this.tableCards.length == 0) {
             this.addScopaPoint();
         }
 
@@ -163,7 +163,7 @@ class ScopaLogic {
 
         if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
             this.setRoundNumber += 1;
-            if (this.setRoundNumber !== 2) {
+            if (this.setRoundNumber !== 3) { // TODO 6 runden
                 this.playOutCards();
             } else {
                 // Teilt die Tischkarten dem Spieler zu welcher zuletzt genommen hat.
@@ -178,8 +178,9 @@ class ScopaLogic {
                 // Ermittelt einen Sieger und speichert diesen
                 this.checkWinner();
 
-                if (this.winnerId) { // TODO ! wegnehmen
-                   // let _winnerPlayer = this.winnerId == this.player1.id ? this.player1 : this.player2;
+                if (this.winnerId) {
+                    // TODO ! wegnehmen
+                    // let _winnerPlayer = this.winnerId == this.player1.id ? this.player1 : this.player2;
 
                     let _winMessage = {
                         messageType: 4,
@@ -187,13 +188,12 @@ class ScopaLogic {
                     };
 
                     this.room.sendAll(JSON.stringify(_winMessage));
+                    //TODO was wenn fertig?
                 } else {
                     this.sendOverViewMessage();
-                    this.startGame();
+                    this.sendCleanMessage();
                     console.log("should be new game...")
                 }
-
-
                 // Löscht Daten vor  neuer Runde
                 this.cleanRoundData();
                 this.setRoundNumber = 1;
@@ -214,6 +214,7 @@ class ScopaLogic {
 
     // Karten mischen
     shuffleCards() {
+        this.shuffeldCards = [];
         this.shuffeldCards = scopaCards.slice();
         this.shuffeldCards = this.shuffle(this.shuffeldCards);
         console.log("neu mischenln...")
@@ -598,12 +599,17 @@ class ScopaLogic {
         this.overViewInfo = [];
     }
 
-    addScopaPoint(){
-        if(this.lastPlayedPlayer == this.player1.id){
+    addScopaPoint() {
+        if (this.lastPlayedPlayer == this.player1.id) {
             this.player1.scopaCount++;
-        }else{
+        } else {
             this.player2.scopaCount++;
         }
+    }
+
+    sendCleanMessage(){
+        let _message = new Message(6);
+        this.room.sendAll(JSON.stringify(_message));
     }
 }
 

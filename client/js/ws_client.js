@@ -6,7 +6,8 @@ const MESSAGE_TYPE = {
     CLIENT_CHAT: 2,
     CLIENT_STATE: 3,
     WIN_MESSAGE: 4,
-    OVERVIEW_MESSAGE: 5
+    OVERVIEW_MESSAGE: 5,
+    CLEAN_MESSAGE: 6
 };
 
 let tableCardArray = [];
@@ -63,14 +64,18 @@ function startScopa() {
         websocket.socket.onmessage = function (e) {
             let _data = JSON.parse(e.data);
 
+            console.log(_data)
+
             if (_data.messageType === MESSAGE_TYPE.SERVER_MESSAGE) {
                 // Spiel Informations-Nachricht
                 handleGameAction(_data);
             } else if (_data.messageType === MESSAGE_TYPE.WIN_MESSAGE) {
                 handleWinAction(_data.winnerId)
-            } else if(_data.messageType === MESSAGE_TYPE.OVERVIEW_MESSAGE){
+            } else if (_data.messageType === MESSAGE_TYPE.OVERVIEW_MESSAGE) {
                 showGameOverview(_data);
-            }else {
+            } else if (_data.messageType === MESSAGE_TYPE.CLEAN_MESSAGE) {
+                cleanTable(_data);
+            } else {
                 // Chat Nachricht
                 handleChatMessage(_data);
             }
@@ -141,7 +146,7 @@ function handleGameAction(aData) {
         isFreed = true;
     }
 
-    if (isGameStart || aData.newRound) {
+    if (aData.newGameRound || aData.newRound) {
         console.log("tablecards received:" + this.tableCardArray)
         console.log("tablecards received:" + this.handCardArray)
 
@@ -154,7 +159,9 @@ function handleGameAction(aData) {
         }
 
         // Muss nur nach neuem Mischeln gemacht werden
-        if (isGameStart) {
+        if (aData.newGameRound) {
+            this.tableCardArray = [];
+
             this.tableCardArray = aData.tableCards;
             for (let i = 0; i < this.tableCardArray.length; i++) {
                 let _card = this.tableCardArray[i];
@@ -163,8 +170,6 @@ function handleGameAction(aData) {
                 addCardToTable(_cardNumber, _cardType);
             }
         }
-
-        isGameStart = false;
     } else {
         lastPlayedCard = aData.lastPlayedCard; // Zuletzt gespielte Karte (spieler1 oder spieler2)
         handleTableCardFromMessage(aData.tableCards, aData.playerCards);
@@ -174,6 +179,7 @@ function handleGameAction(aData) {
 // Erhaltene Karten auf dem Tisch handeln.
 function handleTableCardFromMessage(aArrivedCards) {
 
+    console.log(aArrivedCards)
     // SCOPA !!!
     if (aArrivedCards.length === 0) {
         scopaNotification();
@@ -305,11 +311,11 @@ function showGameOverview(aData) {
                     html += '<td>' + 'Denari' + '</td>';
                 } else if (i == 2) {
                     html += '<td>' + 'Settebello' + '</td>';
-                }else if (i == 3) {
+                } else if (i == 3) {
                     html += '<td>' + 'Settanta' + '</td>';
-                }else if (i == 4) {
+                } else if (i == 4) {
                     html += '<td>' + 'Scopa' + '</td>';
-                }else  {
+                } else {
                     html += '<td>' + 'Total' + '</td>';
                 }
             }
@@ -323,41 +329,45 @@ function showGameOverview(aData) {
     $("#game_overview").show(0).delay(20000).hide(0);
 }
 
-function createOverViewArray(aData){
+function createOverViewArray(aData) {
     var _overView = [];
 
-    aData[0].cardPoint == playerId ? _overView.push([1,0]):_overView.push([0,1]);
-    aData[1].denariPoint == playerId ? _overView.push([1,0]):_overView.push([0,1]);
-    aData[2].settebelloPoint ? _overView.push([1,0]):_overView.push([0,1]);
-    aData[3].settantaPoint == playerId ? _overView.push([1,0]):_overView.push([0,1]);
+    aData[0].cardPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
+    aData[1].denariPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
+    aData[2].settebelloPoint ? _overView.push([1, 0]) : _overView.push([0, 1]);
+    aData[3].settantaPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
 
     let _myScopaPoints;
     let _otherScopaPoints
 
-    if(aData[4].scopaPoints[0].id == playerId){
+    if (aData[4].scopaPoints[0].id == playerId) {
         _myScopaPoints = aData[4].scopaPoints[0].scopaCount;
         _otherScopaPoints = aData[4].scopaPoints[1].scopaCount;
-    }else{
-        _myScopaPoints= aData[4].scopaPoints[1].scopaCount;
+    } else {
+        _myScopaPoints = aData[4].scopaPoints[1].scopaCount;
         _otherScopaPoints = aData[4].scopaPoints[0].scopaCount;
     }
-    _overView.push([_myScopaPoints,_otherScopaPoints]);
+    _overView.push([_myScopaPoints, _otherScopaPoints]);
 
     let _myTotalPoints;
     let _otherTotalPoints;
 
-    if(aData[5].totalPoints[0].id == playerId){
+    if (aData[5].totalPoints[0].id == playerId) {
         _myTotalPoints = aData[5].totalPoints[0].totalCount;
         _otherTotalPoints = aData[5].totalPoints[1].totalCount;
-    }else{
-        _myTotalPoints= aData[5].totalPoints[1].totalCount;
+    } else {
+        _myTotalPoints = aData[5].totalPoints[1].totalCount;
         _otherTotalPoints = aData[5].totalPoints[0].totalCount;
     }
-    _overView.push([_myTotalPoints,_otherTotalPoints]);
+    _overView.push([_myTotalPoints, _otherTotalPoints]);
 
     return _overView;
 }
 
+function cleanTable(aData) {
+    tableCardArray = [];
+    handCardArray = [];
+}
 // Generierung einer UUID.
 function create_UUID() {
     let dt = new Date().getTime();
