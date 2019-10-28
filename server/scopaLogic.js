@@ -49,8 +49,11 @@ class ScopaLogic {
     // Startet das Spiel. (Teilt jeweils 3 Karten den Spielern aus und 4 auf den Tisch.
     startGame() {
         this.gameRoundNumber++;
+        this.setRoundNumber = 1;
         // Karte mischen
         this.shuffleCards(); //TODO: Kann verschoben werden
+
+        console.log("shuffledcards"+this.shuffeldCards)
 
         this.tableCards = this.getNextCards(4);
         this.player1.id = this.room.players[0].playerId;
@@ -67,6 +70,8 @@ class ScopaLogic {
         _message.playerCards = this.player1.actualHandCards;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newGameRound = true;
+        _message.gameRoundNumber = this.gameRoundNumber;
+        console.log("startGame tablecards:"+_message.tableCards+"handCards"+_message.playerCards);
         this.room.sendToPlayer(_message);
 
         _message = new Message(0);
@@ -75,6 +80,8 @@ class ScopaLogic {
         _message.playerCards = this.player2.actualHandCards;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newGameRound = true;
+        _message.gameRoundNumber = this.gameRoundNumber;
+        console.log("startGame tablecards:"+_message.tableCards+"handCards"+_message.playerCards);
         this.room.sendToPlayer(_message);
     }
 
@@ -92,6 +99,8 @@ class ScopaLogic {
         _message.lastPlayedCard = this.lastPlayedCard;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newRound = true;
+        _message.gameRoundNumber = this.gameRoundNumber;
+        console.log("playoutCards tablecards:"+_message.tableCards+"handCards"+_message.tableCards);
         this.room.sendToPlayer(_message);
 
         _message = new Message(0);
@@ -101,6 +110,8 @@ class ScopaLogic {
         _message.lastPlayedCard = this.lastPlayedCard;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newRound = true;
+        _message.gameRoundNumber = this.gameRoundNumber;
+        console.log("playoutCards tablecards:"+_message.tableCards+"handCards"+_message.tableCards);
         this.room.sendToPlayer(_message);
     }
 
@@ -158,19 +169,16 @@ class ScopaLogic {
             this.addScopaPoint();
         }
 
-        console.log("Sendet an beide die aktuellen Tischkarten " + _gameData.tableCards + "und lastplayedcard " + this.lastPlayedCard);
+        console.log("processPlayerMessage tablecards:"+_gameData.tableCards+"handCards"+_gameData.tableCards);
         aRoom.sendAll(JSON.stringify(_gameData));
 
         if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
             this.setRoundNumber += 1;
-            if (this.setRoundNumber !== 3) { // TODO 6 runden
+            if (this.setRoundNumber !== 2) { // TODO 6 runden
                 this.playOutCards();
             } else {
                 // Teilt die Tischkarten dem Spieler zu welcher zuletzt genommen hat.
                 this.distributeLastTableCards();
-
-                console.log("P1 Karte " + this.player1.takenCards);
-                console.log("P2 Karte " + this.player2.takenCards);
 
                 // Zählt die Punkte für die Aktuelle Runde
                 this.countPlayerRoundPoints();
@@ -179,24 +187,20 @@ class ScopaLogic {
                 this.checkWinner();
 
                 if (this.winnerId) {
-                    // TODO ! wegnehmen
-                    // let _winnerPlayer = this.winnerId == this.player1.id ? this.player1 : this.player2;
-
                     let _winMessage = {
                         messageType: 4,
                         winnerId: this.winnerId
                     };
-
+                    console.log("gewinn nachricht senden")
                     this.room.sendAll(JSON.stringify(_winMessage));
                     //TODO was wenn fertig?
                 } else {
                     this.sendOverViewMessage();
-                    this.sendCleanMessage();
-                    console.log("should be new game...")
+                    this.sendCleanCommand();
+                    this.startGame();
                 }
                 // Löscht Daten vor  neuer Runde
                 this.cleanRoundData();
-                this.setRoundNumber = 1;
                 this.gameRoundNumber++;
             }
         }
@@ -530,7 +534,15 @@ class ScopaLogic {
 
         for (let i = 0; i < this.tableCards.length; i++) {
             this.addCardToAccount(_playerId, this.tableCards[i]);
+
         }
+
+        let _message = {
+            messageType: 0,
+            tableCards: []
+        };
+        console.log("sendCleanCommand tablecards:"+_message.tableCards);
+        this.room.sendAll(JSON.stringify(_message));
     }
 
     checkWinner() {
@@ -559,9 +571,9 @@ class ScopaLogic {
     cleanRoundData() {
         this.shuffeldCards = [];
         this.player1.takenCards = [];
-        this.player1.actualHandCards = [];
+        //this.player1.actualHandCards = [];
         this.player2.takenCards = [];
-        this.player2.actualHandCards = [];
+        //this.player2.actualHandCards = [];
         this.player1.scopaCount = 0;
         this.player1.scopaCount = 0;
     }
@@ -594,7 +606,7 @@ class ScopaLogic {
             messageType: 5,
             overViewInfo: this.overViewInfo
         };
-
+        console.log("sendOverViewMessage tablecards:"+_message.tableCards+"handCards"+_message.tableCards);
         this.room.sendAll(JSON.stringify(_message));
         this.overViewInfo = [];
     }
@@ -607,8 +619,11 @@ class ScopaLogic {
         }
     }
 
-    sendCleanMessage(){
+    // Wenn eine Runde zu Ende ist muss
+    sendCleanCommand(){
         let _message = new Message(6);
+        _message.tableCards = [];
+        console.log("sendCleanCommand tablecards:"+_message.tableCards);
         this.room.sendAll(JSON.stringify(_message));
     }
 }

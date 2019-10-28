@@ -64,8 +64,6 @@ function startScopa() {
         websocket.socket.onmessage = function (e) {
             let _data = JSON.parse(e.data);
 
-            console.log(_data)
-
             if (_data.messageType === MESSAGE_TYPE.SERVER_MESSAGE) {
                 // Spiel Informations-Nachricht
                 handleGameAction(_data);
@@ -74,7 +72,7 @@ function startScopa() {
             } else if (_data.messageType === MESSAGE_TYPE.OVERVIEW_MESSAGE) {
                 showGameOverview(_data);
             } else if (_data.messageType === MESSAGE_TYPE.CLEAN_MESSAGE) {
-                cleanTable(_data);
+                cleanForNewGameRound();
             } else {
                 // Chat Nachricht
                 handleChatMessage(_data);
@@ -142,10 +140,15 @@ function handleChatMessage(aData) {
 // Spiel Daten vom Server verarbeiten
 function handleGameAction(aData) {
 
+    console.log("GAMEROUND: "+aData.gameRoundNumber);
+    console.log("received hand cards:"+aData.playerCards)
+    console.log("received table cards:"+aData.tableCards)
+
     if (playerId != aData.lastPlayedPlayer) {
         isFreed = true;
     }
 
+    // Falls es sich um Eine neue Runde handelt oder eine weitere Game runde gestartet wurde
     if (aData.newGameRound || aData.newRound) {
         console.log("tablecards received:" + this.tableCardArray)
         console.log("tablecards received:" + this.handCardArray)
@@ -160,7 +163,6 @@ function handleGameAction(aData) {
 
         // Muss nur nach neuem Mischeln gemacht werden
         if (aData.newGameRound) {
-            this.tableCardArray = [];
 
             this.tableCardArray = aData.tableCards;
             for (let i = 0; i < this.tableCardArray.length; i++) {
@@ -172,19 +174,20 @@ function handleGameAction(aData) {
         }
     } else {
         lastPlayedCard = aData.lastPlayedCard; // Zuletzt gespielte Karte (spieler1 oder spieler2)
-        handleTableCardFromMessage(aData.tableCards, aData.playerCards);
+        handleTableCardFromMessage(aData.tableCards);
     }
 }
 
 // Erhaltene Karten auf dem Tisch handeln.
 function handleTableCardFromMessage(aArrivedCards) {
+    console.log(handCardArray)
+    console.log(tableCardArray)
 
     console.log(aArrivedCards)
     // SCOPA !!!
     if (aArrivedCards.length === 0) {
         scopaNotification();
     }
-
 
     // Welche fehlen in B
     let _cardsToRemove = [];
@@ -275,7 +278,7 @@ function scopaNotification() {
 
 // Funktion wenn ein Scopa gemacht wird. (wird für Audio und Dialog-Einblendung gebraucht)
 function waitOnRivalNotification() {
-    $("#wait_info").show(600).delay(3000).hide(0);
+    $("#wait_info").show(500).delay(1000).hide(0);
     var audio = new Audio('media/wait.mp3');
     audio.play();
 }
@@ -294,6 +297,7 @@ function handleWinAction(aWinnnerId) {
 
 function showGameOverview(aData) {
     let data = this.createOverViewArray(aData.overViewInfo);
+    $("#table_overview").remove();
 
 
     let html = '<table id="table_overview"> <tr>\n' +
@@ -326,7 +330,7 @@ function showGameOverview(aData) {
     html += '</table>';
 
     $(html).appendTo('#game_overview');
-    $("#game_overview").show(0).delay(20000).hide(0);
+    $("#game_overview").show(0).delay(10000).hide(0);
 }
 
 function createOverViewArray(aData) {
@@ -364,9 +368,16 @@ function createOverViewArray(aData) {
     return _overView;
 }
 
-function cleanTable(aData) {
+function cleanForNewGameRound() {
+    console.log("cleanForNewGameRound tableCardArray"+tableCardArray)
+    console.log("cleanForNewGameRound handCardArray"+handCardArray)
+    console.log("cleanForNewGameRound this.handCardArray "+this.tableCardArray)
+    console.log("cleanForNewGameRound this.handCardArray"+this.handCardArray)
+
     tableCardArray = [];
     handCardArray = [];
+    this.tableCardArray = [];
+    this.handCardArray = [];
 }
 // Generierung einer UUID.
 function create_UUID() {
