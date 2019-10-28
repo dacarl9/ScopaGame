@@ -12,12 +12,12 @@ class Player {
     constructor(aSocket) {
         this.socket = aSocket;
         this.id = this.id = "1" + Math.floor(Math.random() * 1000000000);
-        this.playername = 'unnamed';
+        this.playerName = 'unnamed';
         this.playerId = 'not set';
     }
 }
 
-// Raum in dem sich die Spieler befinden.
+// Raum in dem sich die Spieler befinsden.
 function Room() {
     this.players = [];
 }
@@ -34,7 +34,8 @@ Room.prototype.addPlayer = function (aPlayer) {
     // handle player closing
     aPlayer.socket.onclose = function () {
         console.log("A connection left.");
-        _this.removePlayer(aPlayer);
+       // _this.removePlayer(aPlayer);
+        _this.removeAllPlayer();
     }
 };
 
@@ -68,8 +69,8 @@ Room.prototype.handleOnPlayerMessage = function (player) {
 
         if (_data.messageType === MESSAGE_TYPE.CLIENT_CHAT) {
             let _playerDisplayName = player.id;
-            if (player.name) {
-                _playerDisplayName = player.name;
+            if (player.playerName) {
+                _playerDisplayName = player.playerName;
             }
             let _message = new Message(MESSAGE_TYPE.CLIENT_CHAT);
             _message.content = _playerDisplayName + " : " + _data.content;
@@ -80,7 +81,7 @@ Room.prototype.handleOnPlayerMessage = function (player) {
             scopaLogic.processPlayerMessage(_data, _this);
         } else if (_data.messageType === MESSAGE_TYPE.CLIENT_STATE) {
             // Name und ID des Spielers setzen
-            player.playername = _data.playerName;
+            player.playerName = _data.playerName;
             player.playerId = _data.playerId;
             console.log("Spielername: " + _data.playerName + " Spieler ID" + _data.playerId);
 
@@ -100,6 +101,21 @@ Room.prototype.removePlayer = function (player) {
         if (this.players[i] === player) {
             this.players.splice(i, 1);
         }
+    }
+
+    if(this.players.length == 0){
+        scopaLogic = new ScopaLogic(this);
+    }
+};
+
+// Löscht einen Spieler aus dem Spiel
+Room.prototype.removeAllPlayer = function () {
+    if(this.players.length ==1){
+        return;
+    }
+    // loop to find the player
+    for (let i = this.players.length; i >= 0; i--) {
+            this.players.splice(i, 1);
     }
 
     if(this.players.length == 0){

@@ -24,13 +24,13 @@ let roundNumber = 1;
 // Startfunktion
 $(function () {
     //TODO: Nach Deployment wieder einfügen
-    // $("#formPlayerName" ).submit(function( event ) {
-    //     startScopa()
-    //     event.preventDefault();
-    // });
+    $("#formPlayerName" ).submit(function( event ) {
+        startScopa()
+        event.preventDefault();
+    });
 
     //TODO: Test1
-    startScopa();
+    // startScopa();
 });
 
 // Spiel
@@ -90,6 +90,10 @@ function startScopa() {
         if (event.keyCode == '13') {
             sendChatMessage();
         }
+    });
+
+    $("#x").click(function () {
+        $("#game_overview").hide();
     });
 }
 
@@ -330,7 +334,7 @@ function showGameOverview(aData) {
     html += '</table>';
 
     $(html).appendTo('#game_overview');
-    $("#game_overview").show(0).delay(10000).hide(0);
+    $("#game_overview").show(0);
 }
 
 function createOverViewArray(aData) {
@@ -338,7 +342,7 @@ function createOverViewArray(aData) {
 
     aData[0].cardPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
     aData[1].denariPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
-    aData[2].settebelloPoint ? _overView.push([1, 0]) : _overView.push([0, 1]);
+    aData[2].settebelloPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
     aData[3].settantaPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
 
     let _myScopaPoints;
@@ -369,11 +373,6 @@ function createOverViewArray(aData) {
 }
 
 function cleanForNewGameRound() {
-    console.log("cleanForNewGameRound tableCardArray"+tableCardArray)
-    console.log("cleanForNewGameRound handCardArray"+handCardArray)
-    console.log("cleanForNewGameRound this.handCardArray "+this.tableCardArray)
-    console.log("cleanForNewGameRound this.handCardArray"+this.handCardArray)
-
     tableCardArray = [];
     handCardArray = [];
     this.tableCardArray = [];

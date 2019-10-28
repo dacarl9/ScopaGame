@@ -51,10 +51,7 @@ class ScopaLogic {
         this.gameRoundNumber++;
         this.setRoundNumber = 1;
         // Karte mischen
-        this.shuffleCards(); //TODO: Kann verschoben werden
-
-        console.log("shuffledcards"+this.shuffeldCards)
-
+        this.shuffleCards();
         this.tableCards = this.getNextCards(4);
         this.player1.id = this.room.players[0].playerId;
         this.player1.actualHandCards = this.getNextCards(3);
@@ -118,7 +115,7 @@ class ScopaLogic {
     // Spieler Nachricht verarbeiten. (Aktuell wird nur eine Karte vom Spieler gesendet)
     // TODO: Ev. noch gebrauchte Zeit
     processPlayerMessage(message, aRoom) {
-        console.log('nachricht von spieler' + message.playerId + ' in logik empfangen: ' + message.content);
+        console.log('nachricht von spieler' + message.playerName + ' in logik empfangen: ' + message.content);
         let _card = message.content;
         let _player = message.playerId == this.player1.id ? this.player1 : this.player2;
         this.lastPlayedPlayer = _player.id;
@@ -174,9 +171,10 @@ class ScopaLogic {
 
         if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
             this.setRoundNumber += 1;
-            if (this.setRoundNumber !== 2) { // TODO 6 runden
+            if (this.setRoundNumber !== 7) { // TODO 6 runden
                 this.playOutCards();
             } else {
+
                 // Teilt die Tischkarten dem Spieler zu welcher zuletzt genommen hat.
                 this.distributeLastTableCards();
 
@@ -568,16 +566,16 @@ class ScopaLogic {
         }
     }
 
+    // Werte zurücksetzen für eine neue GameRunde
     cleanRoundData() {
         this.shuffeldCards = [];
         this.player1.takenCards = [];
-        //this.player1.actualHandCards = [];
         this.player2.takenCards = [];
-        //this.player2.actualHandCards = [];
         this.player1.scopaCount = 0;
         this.player1.scopaCount = 0;
     }
 
+    // Spielübersicht-Anzeige
     sendOverViewMessage() {
 
         // Scopa Punkt hinzufügen
@@ -611,11 +609,15 @@ class ScopaLogic {
         this.overViewInfo = [];
     }
 
+    // Scopa Punkt hinzufügen
     addScopaPoint() {
+        console.log("scupa")
         if (this.lastPlayedPlayer == this.player1.id) {
             this.player1.scopaCount++;
+            this.player1.totalPoints++;
         } else {
             this.player2.scopaCount++;
+            this.player2.totalPoints++;
         }
     }
 

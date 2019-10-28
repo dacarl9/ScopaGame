@@ -116,6 +116,7 @@ body {
 #send,#title_bar{
     text-align: center;
 }
+
 #nameSetter{
     background: darkgray;
     width: 275px;
@@ -173,7 +174,13 @@ body {
     border-radius: 25px;
     display: none;
 }
-
+#x {
+    position: absolute;
+    background: red;
+    color: white;
+    top: +10px;
+    right: +10px;
+}
 #table_overview{
     color: white;
     width:100%;
