@@ -171,7 +171,7 @@ class ScopaLogic {
 
         if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
             this.setRoundNumber += 1;
-            if (this.setRoundNumber !== 7) { // TODO 6 runden
+            if (this.setRoundNumber !== 6) { // TODO 6 runden
                 this.playOutCards();
             } else {
 
