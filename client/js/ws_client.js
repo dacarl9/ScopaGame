@@ -47,7 +47,7 @@ function startScopa() {
 
     // Überprüft auf Existenz von "WebSeockets" im Browser.
     if (window["WebSocket"]) {
-        websocket.socket = new WebSocket("ws://192.168.0.17:8000");
+        websocket.socket = new WebSocket("ws://127.0.0.1:8000");
 
         // Verbindungsaufbau. Client meldet seine ID und seinen Namen.
         websocket.socket.onopen = function (e) {

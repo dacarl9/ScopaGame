@@ -372,6 +372,7 @@ class ScopaLogic {
         console.log("Actual Points P2:" + this.player2.totalPoints);
     }
 
+    // Karten Punkt berechnen
     calculateCardPoint() {
         if (this.player1.takenCards.length == 20) {
             // Punkt Entfällt
@@ -392,6 +393,7 @@ class ScopaLogic {
         }
     }
 
+    // Denari Punkt beerechnen
     calculateDenariPoint() {
         let _denariCount = 0;
         for (let i = 0; i < this.player1.takenCards.length; i++) {
@@ -424,6 +426,7 @@ class ScopaLogic {
         }
     }
 
+    // Settebello Punkt berechnen
     calculateSetteBelloPoint() {
         let _setteBelloFound = false;
         for (let i = 0; i < this.player1.takenCards.length; i++) {
@@ -449,6 +452,7 @@ class ScopaLogic {
         }
     }
 
+    // Settanta Punkt berechnen
     calculalteSettantaPoint() {
 
         let _player1Cards = this.player1.takenCards;
@@ -487,6 +491,7 @@ class ScopaLogic {
         }
     }
 
+    //
     getPointsFromColor(aArray, aColor) {
         let _cardNumbers = [];
 
@@ -521,6 +526,7 @@ class ScopaLogic {
         }
     }
 
+    // Übrige Karten vom Tisch dem zuletzt genommenen Spieler verteilen
     distributeLastTableCards() {
         let _playerId = '';
 
@@ -543,6 +549,7 @@ class ScopaLogic {
         this.room.sendAll(JSON.stringify(_message));
     }
 
+    // Überprüfen ob es einen eindeutigen Gewinner gibt
     checkWinner() {
         // Beide Spieler haben noch nicht 11
         if (this.player1.totalPoints < 11 && this.player2.totalPoints < 11) {
