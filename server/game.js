@@ -18,14 +18,16 @@ class Player {
 }
 
 // Raum in dem sich die Spieler befinsden.
-function Room() {
-    this.players = [];
-}
+class Room {
+    constructor() {
+        this.players = [];
+    }
+
 
 // Person ins Spiel einloggen
-Room.prototype.addPlayer = function (aPlayer) {
+addPlayer(aPlayer) {
     let _this = this;
-    _this.players.push(aPlayer);
+    this.players.push(aPlayer);
 
 // TODO: Spieler Registrierung --> Dann Spielinformationen senden...
     _this.sendWelcomeMessageData(aPlayer, _this);
@@ -37,10 +39,10 @@ Room.prototype.addPlayer = function (aPlayer) {
        // _this.removePlayer(aPlayer);
         _this.removeAllPlayer();
     }
-};
+}
 
 // Text Nachricht senden.
-Room.prototype.sendWelcomeMessageData = function (aPlayer, room) {
+sendWelcomeMessageData(aPlayer, room) { // TODO: room einbauen oder entfernen
     let _playerDisplayName = aPlayer.id;
     if (aPlayer.name) {
         _playerDisplayName = aPlayer.name;
@@ -51,16 +53,16 @@ Room.prototype.sendWelcomeMessageData = function (aPlayer, room) {
         content: message
     };
     this.sendAll(JSON.stringify(_data));
-};
+}
 
 // Spiel-Nachricht senden. (Karten auf Tisch/in der Hand,..)
-Room.prototype.sendGameData = function (player) {
+sendGameData(player) {
     let _message = scopaLogic.getGameStateMessage();
     this.sendAll(JSON.stringify(_message));
-};
+}
 
 // Auf Client Nachrichten reagieren
-Room.prototype.handleOnPlayerMessage = function (player) {
+handleOnPlayerMessage(player) {
     let _this = this;
 
     // handle on message
@@ -92,10 +94,10 @@ Room.prototype.handleOnPlayerMessage = function (player) {
             }
         }
     });
-};
+}
 
 // Löscht einen Spieler aus dem Spiel
-Room.prototype.removePlayer = function (player) {
+removePlayer(player) {
     // loop to find the player
     for (let i = this.players.length; i >= 0; i--) {
         if (this.players[i] === player) {
@@ -106,10 +108,10 @@ Room.prototype.removePlayer = function (player) {
     if(this.players.length == 0){
         scopaLogic = new ScopaLogic(this);
     }
-};
+}
 
 // Löscht einen Spieler aus dem Spiel
-Room.prototype.removeAllPlayer = function () {
+removeAllPlayer() {
     if(this.players.length ==1){
         return;
     }
@@ -121,24 +123,25 @@ Room.prototype.removeAllPlayer = function () {
     if(this.players.length == 0){
         scopaLogic = new ScopaLogic(this);
     }
-};
+}
 
 // Nachricht an alle Spieler senden
-Room.prototype.sendAll = function (message) {
+sendAll(message) {
     for (let i = 0, len = this.players.length; i < len; i++) {
         this.players[i].socket.send(message);
     }
-};
+}
 
 // Nachricht an spezigischen Spieler senden
-Room.prototype.sendToPlayer = function (aMessage) {
+sendToPlayer(aMessage) {
 
     for (let i = 0, len = this.players.length; i < len; i++) {
         if (this.players[i].playerId === aMessage.playerId) {
             this.players[i].socket.send(JSON.stringify(aMessage));
         }
     }
-};
+}
+}
 
 module.exports.Room = Room;
 module.exports.Player = Player;
