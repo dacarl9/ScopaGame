@@ -171,7 +171,7 @@ class ScopaLogic {
 
         if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
             this.setRoundNumber += 1;
-            if (this.setRoundNumber !== 6) { // TODO 6 runden
+            if (this.setRoundNumber !== 7) { // TODO 6 runden
                 this.playOutCards();
             } else {
 
@@ -219,7 +219,6 @@ class ScopaLogic {
         this.shuffeldCards = [];
         this.shuffeldCards = scopaCards.slice();
         this.shuffeldCards = this.shuffle(this.shuffeldCards);
-        console.log("neu mischenln...")
     }
 
     // Misch Algorithmus
@@ -546,6 +545,7 @@ class ScopaLogic {
             tableCards: []
         };
         console.log("sendCleanCommand tablecards:"+_message.tableCards);
+        this.tableCards = [];
         this.room.sendAll(JSON.stringify(_message));
     }
 
@@ -575,7 +575,7 @@ class ScopaLogic {
 
     // Werte zurücksetzen für eine neue GameRunde
     cleanRoundData() {
-        this.shuffeldCards = [];
+        //this.shuffeldCards = [];
         this.player1.takenCards = [];
         this.player2.takenCards = [];
         this.player1.scopaCount = 0;
