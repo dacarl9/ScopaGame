@@ -192,14 +192,16 @@ class ScopaLogic {
                     console.log("gewinn nachricht senden")
                     this.room.sendAll(JSON.stringify(_winMessage));
                     //TODO was wenn fertig?
+                    this.sendOverViewMessage();
                 } else {
                     this.sendOverViewMessage();
                     this.sendCleanCommand();
                     this.startGame();
+                    // Löscht Daten vor  neuer Runde
+                    this.cleanRoundData();
+                    this.gameRoundNumber++;
                 }
-                // Löscht Daten vor  neuer Runde
-                this.cleanRoundData();
-                this.gameRoundNumber++;
+
             }
         }
     }
