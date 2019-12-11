@@ -105,6 +105,22 @@ body {
     cursor:pointer;
     text-align: center;
 }
+#last-played-card{
+    height: 200px;
+    width: 140px;
+    right: 5px;
+    position: absolute;
+    padding: 0px;
+    top: 5px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    z-index: 1;
+    border: solid 2px white;
+    border-radius: 10px;
+    background: white url("../images/cards/7.1.PNG");
+    background-size: 100% 100%;
+}
 #chat-history{
     resize: none;
     font-size: 13px;
@@ -116,7 +132,6 @@ body {
 #send,#title_bar{
     text-align: center;
 }
-
 #nameSetter{
     background: darkgray;
     width: 275px;

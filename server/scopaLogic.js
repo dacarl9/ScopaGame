@@ -419,8 +419,8 @@ class ScopaLogic {
                 denariPoint: this.player1.id
             });
         } else {
-            this.player2.totalPoints++;
             console.log("Denari P2")
+            this.player2.totalPoints++;
             this.overViewInfo.push({
                 denariPoint: this.player2.id
             });
@@ -492,7 +492,7 @@ class ScopaLogic {
         }
     }
 
-    //
+    // Punkte einer Karten-Farbe. (Wird für Settanta benötigt)
     getPointsFromColor(aArray, aColor) {
         let _cardNumbers = [];
 
@@ -630,7 +630,7 @@ class ScopaLogic {
         }
     }
 
-    // Wenn eine Runde zu Ende ist muss
+    // Wenn eine Runde zu Ende ist müssen die Daten der Spieler gellert werden.
     sendCleanCommand(){
         let _message = new Message(6);
         _message.tableCards = [];

@@ -23,34 +23,39 @@ let roundNumber = 1;
 
 // Startfunktion
 $(function () {
-    //TODO: Nach Deployment wieder einfügen
     $("#formPlayerName" ).submit(function( event ) {
-        startScopa()
+        startScopa();
         event.preventDefault();
     });
-
-    //TODO: Test1
-    // startScopa();
 });
 
 // Spiel
 function startScopa() {
-    $("#login").hide();
-    $("#chat-widnow").css("display", "block");
-
-    // Gleich zu Beginn die ID des Spielers setzen und speichern.
+    // Gleich zu Beginn die ID & Name des Spielers setzen und speichern.
     playerId = create_UUID();
     playerName = $("#userName").val() != '' ? $("#userName").val() : 'unnamed';
-    // Rendern des Chatfensters
-    renderChatBox();
     websocket = {};
 
     // Überprüft auf Existenz von "WebSeockets" im Browser.
     if (window["WebSocket"]) {
-        websocket.socket = new WebSocket("ws://127.0.0.1:8000");
+        websocket.socket = new WebSocket("ws://192.168.0.17:8000");
 
-        // Verbindungsaufbau. Client meldet seine ID und seinen Namen.
+        // Problem bei Verbindungsaufbau
+        websocket.socket.onerror = function (e) {
+            console.log('Die Verbindung zum Server konnte nicht aufgebaut werden.');
+        };
+
+        // ErVerbindungsaufbau. Client meldet seine ID und seinen Namen.
         websocket.socket.onopen = function (e) {
+            // Login Fenster ausblenden
+            $("#login").hide();
+
+            // Handler für die ChatBox.
+            chatBoxHandler();
+
+            // Rendern des Chatfensters
+            renderChatBox();
+
             console.log('WebSocket Verbindung aufgebaut.');
             let _data = {
                 messageType: MESSAGE_TYPE.CLIENT_STATE,
@@ -84,17 +89,6 @@ function startScopa() {
             console.log('WebSocket connection closed');
         };
     }
-    $("#send").click(sendChatMessage);
-
-    $("#chat-input").keypress(function (event) {
-        if (event.keyCode == '13') {
-            sendChatMessage();
-        }
-    });
-
-    $("#x").click(function () {
-        $("#game_overview").hide();
-    });
 }
 
 function sendChatMessage(aType, aContent) {
@@ -116,6 +110,10 @@ function getRandomInt(min, max) {
 
 // Chat-Box Funktionalität anpassen
 function renderChatBox() {
+
+    // Chat Fenster einblenden.
+    $("#chat-widnow").css("display", "block");
+
     // Button deaktivieren
     $("#chat-form").submit(function (e) {
         e.preventDefault();
@@ -131,6 +129,21 @@ function renderChatBox() {
     });
 }
 
+// Chat-Box Handler
+function chatBoxHandler() {
+    $("#send").click(sendChatMessage);
+
+    $("#chat-input").keypress(function (event) {
+        if (event.keyCode == '13') {
+            sendChatMessage();
+        }
+    });
+
+    $("#x").click(function () {
+        $("#game_overview").hide();
+    });
+}
+
 // Chat-Nachricht
 function handleChatMessage(aData) {
     // Chat Nachricht zum Verlauf hinzufügen
@@ -143,8 +156,7 @@ function handleChatMessage(aData) {
 
 // Spiel Daten vom Server verarbeiten
 function handleGameAction(aData) {
-
-    console.log("GAMEROUND: "+aData.gameRoundNumber);
+    console.log("handleGameAction-GAMEROUND: "+aData.gameRoundNumber);
     console.log("received hand cards:"+aData.playerCards)
     console.log("received table cards:"+aData.tableCards)
 
@@ -178,7 +190,9 @@ function handleGameAction(aData) {
         }
     } else {
         lastPlayedCard = aData.lastPlayedCard; // Zuletzt gespielte Karte (spieler1 oder spieler2)
+        console.log(lastPlayedCard)
         handleTableCardFromMessage(aData.tableCards);
+        viewLastPlayedCard();
     }
 }
 
@@ -219,6 +233,11 @@ function handleTableCardFromMessage(aArrivedCards) {
         addCardToTable(_lastCardNumber, _lastCardType);
     }
     this.tableCardArray = aArrivedCards;
+}
+
+function viewLastPlayedCard(){
+    $("#last-played-card").css('background', 'url("images/cards/'+ lastPlayedCard.replace('_','.') + '.png")');
+    $("#last-played-card").css('background-size', '100% 100%');
 }
 
 // Karte zum Tisch hinzufügen
@@ -299,6 +318,7 @@ function handleWinAction(aWinnnerId) {
     }
 }
 
+// Spielstand-Übersicht anzeigen
 function showGameOverview(aData) {
     let data = this.createOverViewArray(aData.overViewInfo);
     $("#table_overview").remove();
@@ -337,14 +357,47 @@ function showGameOverview(aData) {
     $("#game_overview").show(0);
 }
 
+// Spielstand-Array erstellen
 function createOverViewArray(aData) {
     var _overView = [];
 
-    aData[0].cardPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
-    aData[1].denariPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
-    aData[2].settebelloPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
-    aData[3].settantaPoint == playerId ? _overView.push([1, 0]) : _overView.push([0, 1]);
+    // Karten Punkt
+    if(aData[0].cardPoint == playerId){
+        _overView.push([1, 0]); // Punkt für Spieler
+    }else if(aData[0].cardPoint == ''){
+        _overView.push([0, 0]); // Punkt für niemand
+    } else{
+        _overView.push([0, 1]); // Punkt für Gegner
+    }
 
+    // Denari Punkt
+    if(aData[1].denariPoint == playerId ){
+        _overView.push([1, 0]); // Punkt für Spieler
+    }else if(aData[1].denariPoint == ''){
+        _overView.push([0, 0]); // Punkt für niemand
+    } else{
+        _overView.push([0, 1]); // Punkt für Gegner
+    }
+
+    // Settebello Punkt
+    if(aData[2].settebelloPoint == playerId ){
+        _overView.push([1, 0]); // Punkt für Spieler
+    }else if(aData[2].settebelloPoint == ''){
+        _overView.push([0, 0]); // Punkt für niemand
+    } else{
+        _overView.push([0, 1]); // Punkt für Gegner
+    }
+
+    // SettantaPoint Punkt
+    if(aData[3].settantaPoint == playerId ){
+        _overView.push([1, 0]); // Punkt für Spieler
+    }else if(aData[3].settantaPoint == ''){
+        _overView.push([0, 0]); // Punkt für niemand
+    } else{
+        _overView.push([0, 1]); // Punkt für Gegner
+    }
+
+    // Scopa Punkte
     let _myScopaPoints;
     let _otherScopaPoints
 
@@ -357,6 +410,7 @@ function createOverViewArray(aData) {
     }
     _overView.push([_myScopaPoints, _otherScopaPoints]);
 
+    // Total Punkte
     let _myTotalPoints;
     let _otherTotalPoints;
 
@@ -378,6 +432,7 @@ function cleanForNewGameRound() {
     this.tableCardArray = [];
     this.handCardArray = [];
 }
+
 // Generierung einer UUID.
 function create_UUID() {
     let dt = new Date().getTime();
