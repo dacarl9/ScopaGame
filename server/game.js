@@ -34,7 +34,7 @@ class Room {
         // handle player closing
         aPlayer.socket.onclose = function () {
             console.log("A connection left.");
-            // _this.removePlayer(aPlayer);
+            //TODO: alle schliessen
             _this.removeAllPlayer();
         }
     }

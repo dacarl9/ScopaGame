@@ -38,6 +38,7 @@ body {
     border-radius: 10px;
     width: 120px;
     height: 200px;
+    max-height: 200px;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.8);
     transition: 0.2s;
     margin: 1%;
@@ -105,10 +106,10 @@ body {
     cursor:pointer;
     text-align: center;
 }
-#last-played-card{
+#gameState{
     display: none;
-    height: 200px;
-    width: 120px;
+    height: 220px;
+    width: 200px;
     right: 5px;
     position: absolute;
     padding: 0px;
@@ -117,10 +118,30 @@ body {
     margin-right: 0px;
     margin-bottom: 0px;
     z-index: 1;
-    border: solid 2px white;
+    border: solid 0.1px white;
+    border-radius: 10px;
+    background-size: 100% 100%;
+}
+#last-played-card{
+    height: 140px;
+    width: 80px;
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    border: solid 0.5px black;
     border-radius: 10px;
     background: white url("../images/cards/background.jpg");
     background-size: 100% 100%;
+}
+#totalPointView{
+    text-align: center;
+    font-size: 36px;
+    background: white;
+    margin-left: 50px;
+    margin-right: 50px;
+    border-radius: 10px;
 }
 #chat-history{
     resize: none;
@@ -134,11 +155,24 @@ body {
     text-align: center;
 }
 #nameSetter{
-    background: darkgray;
-    width: 275px;
-    height: 80px;
+    background: white;
+    width: 400px;
+    height: 150px;
     top: 50%;
     left:50%;
+    border: solid black 1px;
+    border-radius: 5px;
+    z-index: 1;
+    font-size: larger;
+}
+#login{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    /* bring your own prefixes */
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    text-align: center;
 }
 #wait_info,#scopa_info, #win_info,#loose_info,#errorMessage{
     text-align: center;

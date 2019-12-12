@@ -14,12 +14,15 @@
 <div id="login">
     <form id="formPlayerName">
         <div id="nameSetter">
-            <label for="userName">Spielername:</label><br>
-            <input type="text" id="userName" name="user_name">
-            <input type="submit">
+            <div style="padding: 10px;">
+                <label for="userName">Spielername</label><br>
+                <input style="width: 100%" type="text" id="userName" name="user_name">
+            </div>
+            <div style="padding: 10px;">
+                <button type="submit" class="btn btn-primary btn-block">Spiel starten</button>
+            </div>
         </div>
     </form>
-
 </div>
 
 
@@ -71,7 +74,12 @@
             </div>
         </div>
 
-        <div id="last-played-card"></div>
+        <div id="gameState">
+            <div id="totalPointView">0:0</div>
+
+            <div id="last-played-card"></div>
+        </div>
+
 
         <div id="table">
         </div>

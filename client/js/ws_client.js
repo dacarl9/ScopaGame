@@ -21,8 +21,16 @@ let startDate = new Date();
 let endDate = new Date();
 let roundNumber = 1;
 
+let myTotalPoints = 0;
+let rivalTotalPoints = 0;
+
 // Startfunktion
 $(function () {
+    window.onbeforeunload = function () {
+        console.log('test')
+       return false;
+    }
+
     $("#formPlayerName" ).submit(function( event ) {
         startScopa();
         event.preventDefault();
@@ -50,8 +58,8 @@ function startScopa() {
             // Login Fenster ausblenden
             $("#login").hide();
 
-            // Login Fenster ausblenden
-            $("#last-played-card").show();
+            // zuletzt gespielte Karten-Anzeige anzeigen.
+            $("#gameState").show();
 
             // Handler für die ChatBox.
             chatBoxHandler();
@@ -310,6 +318,7 @@ function waitOnRivalNotification() {
     audio.play();
 }
 
+// Gewinn/Verlier-Nachricht anzeigen
 function handleWinAction(aWinnnerId) {
     if (playerId === aWinnnerId) {
         $("#win_info").show(0).delay(5000).hide(0);
@@ -427,6 +436,9 @@ function createOverViewArray(aData) {
     }
     _overView.push([_myTotalPoints, _otherTotalPoints]);
 
+    myTotalPoints = _myTotalPoints;
+    rivalTotalPoints = _otherTotalPoints;
+    updatePointView(myTotalPoints,rivalTotalPoints);
     return _overView;
 }
 
@@ -437,6 +449,9 @@ function cleanForNewGameRound() {
     this.handCardArray = [];
 }
 
+function updatePointView(aMe, aRival){
+    $('#totalPointView').text(aMe+':'+aRival);
+}
 function showErrorMessage(aErrorMessage){
     $("#errorMessage").show(0).delay(5000).hide(0);
 }
