@@ -28,7 +28,6 @@ class Room {
         let _this = this;
         this.players.push(aPlayer);
 
-        // TODO: Spieler Registrierung --> Dann Spielinformationen senden...
         _this.sendWelcomeMessageData(aPlayer, _this);
         _this.handleOnPlayerMessage(aPlayer);
 
@@ -41,11 +40,12 @@ class Room {
     }
 
 // Gibt die Anzahl Spieler im Raum zurück.
-    getPlayerCount(){
+    getPlayerCount() {
         return this.players.length;
     }
 
-    inizializeGame(){
+    // Start des Spiels
+    inizializeGame() {
         //  Pro Spiel gibt es eine Scopa-Logik (diese Verwaltet jeweils ein Duell)
         if (this.players.length === 2) {
             scopaLogic = new ScopaLogic(this);
@@ -54,7 +54,7 @@ class Room {
     }
 
 // Text Nachricht senden.
-    sendWelcomeMessageData(aPlayer, room) { // TODO: room einbauen oder entfernen
+    sendWelcomeMessageData(aPlayer, room) {
         let _playerDisplayName = aPlayer.id;
         if (aPlayer.name) {
             _playerDisplayName = aPlayer.name;
@@ -111,14 +111,14 @@ class Room {
             }
         }
 
-        if(this.players.length == 0){
+        if (this.players.length === 0) {
             scopaLogic = new ScopaLogic(this);
         }
     }
 
 // Löscht einen Spieler aus dem Spiel
     removeAllPlayer() {
-        if(this.players.length ==1){
+        if (this.players.length === 1) {
             return;
         }
         // loop to find the player
@@ -126,7 +126,7 @@ class Room {
             this.players.splice(i, 1);
         }
 
-        if(this.players.length == 0){
+        if (this.players.length === 0) {
             scopaLogic = new ScopaLogic(this);
         }
     }

@@ -26,7 +26,7 @@ class ScopaLogic {
             takenCards: [],
             scopaCount: 0,
             totalPoints: 0
-        }
+        };
         this.player2 = {
             id: '',
             actualHandCards: [],
@@ -34,7 +34,7 @@ class ScopaLogic {
             takenCards: [],
             scopaCount: 0,
             totalPoints: 0
-        }
+        };
         this.gameRoundNumber = 0;
         // Satzrunde (wird für das erkennen des Ende einer Gamerunde verwendet)
         this.setRoundNumber = 1;
@@ -47,7 +47,7 @@ class ScopaLogic {
     }
 
     // Startet das Spiel. (Teilt jeweils 3 Karten den Spielern aus und 4 auf den Tisch.
-    startGame() {
+    startGame(aDistributorId) {
         this.gameRoundNumber++;
         this.setRoundNumber = 1;
         // Karte mischen
@@ -58,11 +58,15 @@ class ScopaLogic {
         this.player2.id = this.room.players[1].playerId;
         this.player2.actualHandCards = this.getNextCards(3);
 
-        // Player 1 "teilt" Karten aus.
-        this.lastPlayedPlayer = this.player1.id;//TODO analyse id
+        // Player 1 "teilt" Karten am Anfang aus.
+        if(aDistributorId){
+            this.lastPlayedPlayer = aDistributorId;
+        }else {
+            this.lastPlayedPlayer = this.room.players[0].playerId;
+        }
 
         let _message = new Message(0);
-        _message.playerId = this.player1.id;
+        _message.playerId = this.room.players[0].playerId;
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player1.actualHandCards;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
@@ -72,7 +76,7 @@ class ScopaLogic {
         this.room.sendToPlayer(_message);
 
         _message = new Message(0);
-        _message.playerId = this.player2.id;
+        _message.playerId = this.room.players[1].playerId;
         _message.tableCards = this.tableCards;
         _message.playerCards = this.player2.actualHandCards;
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
@@ -118,7 +122,7 @@ class ScopaLogic {
         console.log('nachricht von spieler' + message.playerName + ' in logik empfangen: ' + message.content);
         let _card = message.content;
         let _player = message.playerId == this.player1.id ? this.player1 : this.player2;
-        this.lastPlayedPlayer = _player.id;
+        this.lastPlayedPlayer = message.playerId == this.player1.id ? this.room.players[0].playerId : this.room.players[1].playerId;
 
         this.removeFromArray(_player.actualHandCards, _card);
 
@@ -171,7 +175,7 @@ class ScopaLogic {
 
         if (this.player1.actualHandCards.length == 0 && this.player2.actualHandCards.length == 0) {
             this.setRoundNumber += 1;
-            if (this.setRoundNumber !== 7) { // TODO 6 runden
+            if (this.setRoundNumber !== 7) {
                 this.playOutCards();
             } else {
 
@@ -194,9 +198,14 @@ class ScopaLogic {
                     //TODO was wenn fertig?
                     this.sendOverViewMessage();
                 } else {
+                    let _finalLastPlayerId = this.lastPlayedPlayer;
                     this.sendOverViewMessage();
                     this.sendCleanCommand();
-                    this.startGame();
+
+                    // Wechsel des Kartenverteilers
+                    let _distributorId = _finalLastPlayerId === this.room.players[0].playerId ? this.room.players[1].playerId : this.room.players[0].playerId;
+                    this.startGame(_distributorId);
+
                     // Löscht Daten vor  neuer Runde
                     this.cleanRoundData();
                     this.gameRoundNumber++;
@@ -577,11 +586,10 @@ class ScopaLogic {
 
     // Werte zurücksetzen für eine neue GameRunde
     cleanRoundData() {
-        //this.shuffeldCards = [];
         this.player1.takenCards = [];
         this.player2.takenCards = [];
         this.player1.scopaCount = 0;
-        this.player1.scopaCount = 0;
+        this.player2.scopaCount = 0;
     }
 
     // Spielübersicht-Anzeige

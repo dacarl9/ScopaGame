@@ -106,8 +106,9 @@ body {
     text-align: center;
 }
 #last-played-card{
+    display: none;
     height: 200px;
-    width: 140px;
+    width: 120px;
     right: 5px;
     position: absolute;
     padding: 0px;
@@ -118,7 +119,7 @@ body {
     z-index: 1;
     border: solid 2px white;
     border-radius: 10px;
-    background: white url("../images/cards/7.1.PNG");
+    background: white url("../images/cards/background.jpg");
     background-size: 100% 100%;
 }
 #chat-history{

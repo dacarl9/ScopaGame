@@ -1,4 +1,5 @@
 let websocket = null;
+let ip = '192.168.0.17';
 
 const MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
@@ -38,7 +39,7 @@ function startScopa() {
 
     // Überprüft auf Existenz von "WebSeockets" im Browser.
     if (window["WebSocket"]) {
-        websocket.socket = new WebSocket("ws://192.168.0.17:8000");
+        websocket.socket = new WebSocket("ws://"+ip+":8000");
 
         // Problem bei Verbindungsaufbau
         websocket.socket.onerror = function (e) {
@@ -49,6 +50,9 @@ function startScopa() {
         websocket.socket.onopen = function (e) {
             // Login Fenster ausblenden
             $("#login").hide();
+
+            // Login Fenster ausblenden
+            $("#last-played-card").show();
 
             // Handler für die ChatBox.
             chatBoxHandler();
