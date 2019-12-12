@@ -72,6 +72,7 @@ class ScopaLogic {
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newGameRound = true;
         _message.gameRoundNumber = this.gameRoundNumber;
+        _message.setRoundNumber = this.setRoundNumber;
         console.log("startGame tablecards:"+_message.tableCards+"handCards"+_message.playerCards);
         this.room.sendToPlayer(_message);
 
@@ -82,6 +83,7 @@ class ScopaLogic {
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newGameRound = true;
         _message.gameRoundNumber = this.gameRoundNumber;
+        _message.setRoundNumber = this.setRoundNumber;
         console.log("startGame tablecards:"+_message.tableCards+"handCards"+_message.playerCards);
         this.room.sendToPlayer(_message);
     }
@@ -101,6 +103,7 @@ class ScopaLogic {
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newRound = true;
         _message.gameRoundNumber = this.gameRoundNumber;
+        _message.setRoundNumber = this.setRoundNumber;
         console.log("playoutCards tablecards:"+_message.tableCards+"handCards"+_message.tableCards);
         this.room.sendToPlayer(_message);
 
@@ -112,6 +115,7 @@ class ScopaLogic {
         _message.lastPlayedPlayer = this.lastPlayedPlayer;
         _message.newRound = true;
         _message.gameRoundNumber = this.gameRoundNumber;
+        _message.setRoundNumber = this.setRoundNumber;
         console.log("playoutCards tablecards:"+_message.tableCards+"handCards"+_message.tableCards);
         this.room.sendToPlayer(_message);
     }

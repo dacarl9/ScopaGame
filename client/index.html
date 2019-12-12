@@ -10,6 +10,7 @@
 </head>
 <body>
 
+<!--LOGIN Fenster-->
 <div id="login">
     <form id="formPlayerName">
         <div id="nameSetter">
@@ -20,6 +21,9 @@
     </form>
 
 </div>
+
+
+<!--Info Messages-->
 <div id="scopa_info">
     <p class="success">!!! Scopa !!!</p>
 </div>
@@ -32,13 +36,18 @@
 <div id="loose_info">
     <p class="error">Verloren</p>
 </div>
+<div id="errorMessage">
+    <p class="error">Verbindung zum Server konnte nicht hergestellt werden.</p>
+</div>
 
+<!--Spiel Übersicht-->
 <div id="game_overview">
     <button id = "x">
         X
     </button>
 </div>
 
+<!--Spiel Fenster-->
 <div id="game">
     <div id="playground">
         <div id="chat-widnow">
@@ -71,8 +80,11 @@
         </div>
     </div>
 </div>
+
+<!--Footer Fenster-->
 <footer>
 </footer>
+
 <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
 <script src="js/ws_client.js"></script>
 </body>

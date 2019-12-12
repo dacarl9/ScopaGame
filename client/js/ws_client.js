@@ -13,7 +13,6 @@ const MESSAGE_TYPE = {
 
 let tableCardArray = [];
 let handCardArray = [];
-let isGameStart = true;
 let lastPlayedCard = "";
 let playerName = "";
 let playerId = 'client not set';
@@ -43,7 +42,7 @@ function startScopa() {
 
         // Problem bei Verbindungsaufbau
         websocket.socket.onerror = function (e) {
-            console.log('Die Verbindung zum Server konnte nicht aufgebaut werden.');
+            showErrorMessage(e)
         };
 
         // ErVerbindungsaufbau. Client meldet seine ID und seinen Namen.
@@ -160,9 +159,10 @@ function handleChatMessage(aData) {
 
 // Spiel Daten vom Server verarbeiten
 function handleGameAction(aData) {
-    console.log("handleGameAction-GAMEROUND: "+aData.gameRoundNumber);
-    console.log("received hand cards:"+aData.playerCards)
-    console.log("received table cards:"+aData.tableCards)
+
+    if(aData.setRoundNumber){
+        roundNumber = aData.setRoundNumber;
+    }
 
     if (playerId != aData.lastPlayedPlayer) {
         isFreed = true;
@@ -204,10 +204,10 @@ function handleGameAction(aData) {
 function handleTableCardFromMessage(aArrivedCards) {
     console.log(handCardArray)
     console.log(tableCardArray)
-
     console.log(aArrivedCards)
+
     // SCOPA !!!
-    if (aArrivedCards.length === 0) {
+    if (aArrivedCards.length === 0 && roundNumber !==6) {
         scopaNotification();
     }
 
@@ -437,6 +437,9 @@ function cleanForNewGameRound() {
     this.handCardArray = [];
 }
 
+function showErrorMessage(aErrorMessage){
+    $("#errorMessage").show(0).delay(5000).hide(0);
+}
 // Generierung einer UUID.
 function create_UUID() {
     let dt = new Date().getTime();
