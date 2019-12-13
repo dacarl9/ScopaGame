@@ -3,8 +3,12 @@ let MESSAGE_TYPE = {
     CLIENT_CARD: 1,
     CLIENT_CHAT: 2,
     CLIENT_STATE: 3,
+    WIN_MESSAGE: 4,
+    OVERVIEW_MESSAGE: 5,
+    CLEAN_MESSAGE: 6,
     CLIENT_RESTART: 7
 };
+
 let Message = require('./message').Message;
 let ScopaLogic = require('./scopaLogic').ScopaLogic;
 let scopaLogic = null;

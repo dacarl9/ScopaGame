@@ -1,15 +1,12 @@
 class Message {
     constructor(type){
         this.messageType = type;
-        this.playerId = 'nicht gesetzt';
-        this.startDate = new Date();
-        this.endDate = new Date();
+        this.playerId = '';
         this.tableCards = [];
         this.playerCards = [];
-        this.lastPlayedPlayer = 'nicht gesetzt';
-        this.roundNumber = 1;
-        this.cardShufflerId = '';
-        this.actionCard = '';
+        this.lastPlayedPlayer = '';
+        this.setRoundNumber = 1;
+        this.lastPlayedCard = '';
         this.content ='';
     }
 }
