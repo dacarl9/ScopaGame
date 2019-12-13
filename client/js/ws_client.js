@@ -8,7 +8,8 @@ const MESSAGE_TYPE = {
     CLIENT_STATE: 3,
     WIN_MESSAGE: 4,
     OVERVIEW_MESSAGE: 5,
-    CLEAN_MESSAGE: 6
+    CLEAN_MESSAGE: 6,
+    CLIENT_RESTART: 7
 };
 
 let tableCardArray = [];
@@ -26,8 +27,8 @@ let rivalTotalPoints = 0;
 
 // Startfunktion
 $(function () {
+
     window.onbeforeunload = function () {
-        console.log('test')
        return false;
     }
 
@@ -112,6 +113,22 @@ function sendChatMessage(aType, aContent) {
     };
     websocket.socket.send(JSON.stringify(_data));
     $("#chat-input").val("");
+}
+
+function senRestartMessage(aType, aContent) {
+    $("#restart").hide(0);
+    let _data = {
+        messageType: MESSAGE_TYPE.CLIENT_RESTART,
+        playerId: playerId
+    };
+    websocket.socket.send(JSON.stringify(_data));
+
+    tableCardArray = [];
+    handCardArray = [];
+    lastPlayedCard = "";s
+    startDate = new Date();
+    endDate = new Date();
+    roundNumber = 1;
 }
 
 // Gibt eine Random Zahl zwischen min un max zurück.
@@ -329,6 +346,10 @@ function handleWinAction(aWinnnerId) {
         var audio = new Audio('media/loose.mp3');
         audio.play();
     }
+    $("#restart").show(0);
+    $( "#target" ).click(function() {
+        senRestartMessage();
+    });
 }
 
 // Spielstand-Übersicht anzeigen

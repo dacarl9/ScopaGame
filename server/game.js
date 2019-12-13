@@ -2,7 +2,8 @@ let MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
     CLIENT_CARD: 1,
     CLIENT_CHAT: 2,
-    CLIENT_STATE: 3
+    CLIENT_STATE: 3,
+    CLIENT_RESTART: 7
 };
 let Message = require('./message').Message;
 let ScopaLogic = require('./scopaLogic').ScopaLogic;
@@ -88,7 +89,6 @@ class Room {
                 }
                 let _message = new Message(MESSAGE_TYPE.CLIENT_CHAT);
                 _message.content = _playerDisplayName + " : " + _data.content;
-
                 _this.sendAll(JSON.stringify(_message));
             } else if (_data.messageType === MESSAGE_TYPE.CLIENT_CARD) {
                 // Karte in der Logik verarbeiten.
@@ -98,6 +98,8 @@ class Room {
                 player.playerName = _data.playerName;
                 player.playerId = _data.playerId;
                 console.log("Spielername: " + _data.playerName + " Spieler ID" + _data.playerId);
+            }else if (_data.messageType === MESSAGE_TYPE.CLIENT_RESTART) {
+               scopaLogic.startGame();
             }
         });
     }
