@@ -32,6 +32,8 @@ $(function () {
        return false;
     }
 
+    $( "#userName" ).focus();
+
     $("#formPlayerName" ).submit(function( event ) {
         startScopa();
         event.preventDefault();
