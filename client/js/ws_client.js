@@ -1,5 +1,5 @@
 let websocket = null;
-let ip = '192.168.0.17';
+let ip = '127.0.0.1';
 
 const MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
@@ -27,11 +27,6 @@ let rivalTotalPoints = 0;
 
 // Startfunktion
 $(function () {
-
-    window.onbeforeunload = function () {
-       return false;
-    }
-
     $( "#userName" ).focus();
 
     $("#formPlayerName" ).submit(function( event ) {
@@ -348,8 +343,8 @@ function handleWinAction(aWinnnerId) {
         var audio = new Audio('media/loose.mp3');
         audio.play();
     }
-    $("#restart").show(0);
-    $( "#target" ).click(function() {
+    //$("#restart").show(0);
+    $( "#restart" ).click(function() {
         senRestartMessage();
     });
 }
@@ -475,9 +470,11 @@ function cleanForNewGameRound() {
 function updatePointView(aMe, aRival){
     $('#totalPointView').text(aMe+':'+aRival);
 }
+
 function showErrorMessage(aErrorMessage){
     $("#errorMessage").show(0).delay(5000).hide(0);
 }
+
 // Generierung einer UUID.
 function create_UUID() {
     let dt = new Date().getTime();
