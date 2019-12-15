@@ -1,5 +1,3 @@
-//TODO: Vater hat gesagt mach eine kuuulee schriftrolle wo die spiu regu drin stöid
-
 scopaCards = [
     "1_1", "2_1", "3_1", "4_1", "5_1", "6_1", "7_1", "8_1", "9_1", "10_1",
     "1_2", "2_2", "3_2", "4_2", "5_2", "6_2", "7_2", "8_2", "9_2", "10_2",
