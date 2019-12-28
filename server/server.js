@@ -1,5 +1,5 @@
 // Settings
-let port = 8000;
+let port = process.env.PORT || 8000;
 
 // Server code
 let WebSocketServer = require('ws').Server;
