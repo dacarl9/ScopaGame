@@ -1,5 +1,5 @@
 let websocket = null;
-let ip = '127.0.0.1';
+let ip = '52.209.151.97';
 
 const MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
