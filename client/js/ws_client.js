@@ -1,5 +1,6 @@
 let websocket = null;
-let ip = '52.209.151.97';
+let ip = process.env.IP|| "127.0.0.1";
+let port = process.env.PORT|| "8000";
 
 const MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
@@ -50,7 +51,7 @@ function startScopa() {
 
     // Überprüft auf Existenz von "WebSeockets" im Browser.
     if (window["WebSocket"]) {
-        websocket.socket = new WebSocket("ws://"+ip+":8000");
+        websocket.socket = new WebSocket("ws://"+ip+":"+port);
 
         // Problem bei Verbindungsaufbau
         websocket.socket.onerror = function (e) {
