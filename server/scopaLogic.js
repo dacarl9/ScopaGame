@@ -119,10 +119,9 @@ class ScopaLogic {
     }
 
     // Spieler Nachricht verarbeiten. (Aktuell wird nur eine Karte vom Spieler gesendet)
-    // TODO: Ev. noch gebrauchte Zeit
     processPlayerMessage(message, aRoom) {
         console.log('nachricht von spieler' + message.playerName + ' in logik empfangen: ' + message.content);
-        let _card = message.content;
+        let _card = message.content ? message.content : this.lastPlayedCard;
         let _player = message.playerId == this.player1.id ? this.player1 : this.player2;
         this.lastPlayedPlayer = message.playerId == this.player1.id ? this.room.players[0].playerId : this.room.players[1].playerId;
 
@@ -134,7 +133,6 @@ class ScopaLogic {
         // 2. Fall: Kombinationen zur Karte
         let _cardCombinations = this.getPossibleCardCombinationWithCard(_card);
 
-        // TODO: prio 2 Auswahl? für gleiche Karten & nicht nur erste Karte
         if (sameCards.length > 0) {
             // Gepsielte Karte aufs Konto.
             this.addCardToAccount(message.playerId, _card);
@@ -148,11 +146,27 @@ class ScopaLogic {
             this.addCardToAccount(message.playerId, _card);
             // Spieler kann Karte nehmen.
 
-            // TODO: prio 2 _cardCombinations[0] aktuell nur erst bester genommen
-            let _cardsToRemove = _cardCombinations[0];
-            for (let element in _cardsToRemove) {
-                this.addCardToAccount(message.playerId, _cardsToRemove[element]);
-                this.removeFromArray(this.tableCards, _cardsToRemove[element]);
+            if(message.combination){
+                let _cardsToRemove = message.combination;
+                for (let element in _cardsToRemove) {
+                    this.addCardToAccount(message.playerId, _cardsToRemove[element]);
+                    this.removeFromArray(this.tableCards, _cardsToRemove[element]);
+                }
+            }else if(_cardCombinations.length === 1){
+                let _cardsToRemove = _cardCombinations[0];
+                for (let element in _cardsToRemove) {
+                    this.addCardToAccount(message.playerId, _cardsToRemove[element]);
+                    this.removeFromArray(this.tableCards, _cardsToRemove[element]);
+                }
+            }else{
+                // Hier sind mehrere Kombinationen möglich und es muss eine vom Spieler ausgewählt werden.
+                var _message = {
+                    messageType: 9,
+                    playerId: message.playerId,
+                    combinations: _cardCombinations
+                };
+                aRoom.sendToPlayer(_message);
+                return;
             }
         } else {
             // Karte kann nicht genommen werden.

@@ -9,9 +9,15 @@ const MESSAGE_TYPE = {
     WIN_MESSAGE: 4,
     OVERVIEW_MESSAGE: 5,
     CLEAN_MESSAGE: 6,
-    CLIENT_RESTART: 7
+    CLIENT_RESTART: 7,
+    CLIENT_LOGOUT: 8,
+    CLIENT_COMBINATION: 9
 };
 
+let audioCard = new Audio('media/card_play.wav');
+let audioScopa = new Audio('media/scopa.mp3');
+let audioShuffle = new Audio('media/shuffle.mp3');
+let audioWait = new Audio('media/wait.mp3');
 let tableCardArray = [];
 let handCardArray = [];
 let lastPlayedCard = "";
@@ -85,9 +91,14 @@ function startScopa() {
                 handleWinAction(_data.winnerId)
             } else if (_data.messageType === MESSAGE_TYPE.OVERVIEW_MESSAGE) {
                 showGameOverview(_data);
-            } else if (_data.messageType === MESSAGE_TYPE.CLEAN_MESSAGE) {
+            } else if (_data.messageType === MESSAGE_TYPE.CLEAN_MESSAGE || _data.messageType === MESSAGE_TYPE.CLIENT_RESTART) {
                 cleanForNewGameRound();
-            } else {
+            } else if (_data.messageType === MESSAGE_TYPE.CLIENT_LOGOUT) {
+                leaveGame(_data);
+            } else if (_data.messageType === MESSAGE_TYPE.CLIENT_COMBINATION) {
+                handleCombinations(_data);
+            }
+            else {
                 // Chat Nachricht
                 handleChatMessage(_data);
             }
@@ -95,6 +106,7 @@ function startScopa() {
 
         //on close event
         websocket.socket.onclose = function (e) {
+
             console.log('WebSocket connection closed');
         };
     }
@@ -112,7 +124,7 @@ function sendChatMessage(aType, aContent) {
     $("#chat-input").val("");
 }
 
-function senRestartMessage(aType, aContent) {
+function sendRestartMessage(aType, aContent) {
     $("#restart").hide(0);
     let _data = {
         messageType: MESSAGE_TYPE.CLIENT_RESTART,
@@ -122,7 +134,7 @@ function senRestartMessage(aType, aContent) {
 
     tableCardArray = [];
     handCardArray = [];
-    lastPlayedCard = "";s
+    lastPlayedCard = "";
     startDate = new Date();
     endDate = new Date();
     roundNumber = 1;
@@ -205,6 +217,7 @@ function handleGameAction(aData) {
 
         // Muss nur nach neuem Mischeln gemacht werden
         if (aData.newGameRound) {
+            audioShuffle.play();
 
             this.tableCardArray = aData.tableCards;
             for (let i = 0; i < this.tableCardArray.length; i++) {
@@ -264,6 +277,58 @@ function handleTableCardFromMessage(aArrivedCards) {
 function viewLastPlayedCard(){
     $("#last-played-card").css('background', 'url("images/cards/'+ lastPlayedCard.replace('_','.') + '.png")');
     $("#last-played-card").css('background-size', '100% 100%');
+
+
+    audioCard.play();
+}
+
+function handleCombinations(aData){
+    let _comboArrays = aData.combinations;
+
+    for (let i = 0; i < _comboArrays.length; i++) {
+       let combination =_comboArrays[i];
+
+       for (let j = 0; j < combination.length; j++) {
+            let _card = combination[j];
+           $('#card_'+_card).css('border', '3px solid green');
+           $('#card_'+_card).css('cursor', 'pointer');
+           $('#card_'+_card).click( function() {
+               var id = $(this).attr('id');
+               responseCombinations(id,_comboArrays);
+           });
+       }
+    }
+}
+
+function responseCombinations(aCard, aCombinations ){
+    let _comboArrays = aCombinations;
+    let _selectedCard = aCard.replace('card_','');
+    let choosenCombo;
+
+    for (let i = 0; i < _comboArrays.length; i++) {
+        let combination =_comboArrays[i];
+
+        for (let j = 0; j < combination.length; j++) {
+            let _card = combination[j];
+
+            if(_card === _selectedCard){
+                choosenCombo = combination;
+            }
+
+
+            $('#card_'+_card).css('border', 'none');
+            $('#card_'+_card).css('cursor', 'none');
+            $('#card_'+_card).unbind( "click" );
+        }
+    }
+
+    let _data = {
+        messageType: MESSAGE_TYPE.CLIENT_CARD,
+        playerId: playerId,
+        combination: choosenCombo
+    };
+    websocket.socket.send(JSON.stringify(_data));
+
 }
 
 // Karte zum Tisch hinzufügen
@@ -321,15 +386,14 @@ function removeCard(aCard) {
 // Funktion wenn ein Scopa gemacht wird. (wird für Audio und Dialog-Einblendung gebraucht)
 function scopaNotification() {
     $("#scopa_info").show(600).delay(3000).hide(0);
-    var audio = new Audio('media/scopa.mp3');
-    audio.play();
+    audioScopa.play();
 }
 
 // Funktion wenn ein Scopa gemacht wird. (wird für Audio und Dialog-Einblendung gebraucht)
 function waitOnRivalNotification() {
-    $("#wait_info").show(500).delay(1000).hide(0);
-    var audio = new Audio('media/wait.mp3');
-    audio.play();
+    $("#wait_info").show().delay(1000).hide(0);
+
+    audioWait.play();
 }
 
 // Gewinn/Verlier-Nachricht anzeigen
@@ -343,9 +407,9 @@ function handleWinAction(aWinnnerId) {
         var audio = new Audio('media/loose.mp3');
         audio.play();
     }
-    //$("#restart").show(0);
+    $("#restart").show(0);
     $( "#restart" ).click(function() {
-        senRestartMessage();
+        sendRestartMessage();
     });
 }
 
@@ -465,6 +529,19 @@ function cleanForNewGameRound() {
     handCardArray = [];
     this.tableCardArray = [];
     this.handCardArray = [];
+}
+
+function leaveGame(aData) {
+    tableCardArray = [];
+    handCardArray = [];
+    this.tableCardArray = [];
+    this.handCardArray = [];
+
+    // Login Fenster ausblenden
+    $("#login").show();
+
+    // zuletzt gespielte Karten-Anzeige anzeigen.
+    $("#gameState").hide();
 }
 
 function updatePointView(aMe, aRival){

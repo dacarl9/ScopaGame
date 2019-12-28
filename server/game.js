@@ -1,12 +1,13 @@
 let MESSAGE_TYPE = {
-    SERVER_MESSAGE: 0,
-    CLIENT_CARD: 1,
-    CLIENT_CHAT: 2,
-    CLIENT_STATE: 3,
-    WIN_MESSAGE: 4,
-    OVERVIEW_MESSAGE: 5,
-    CLEAN_MESSAGE: 6,
-    CLIENT_RESTART: 7
+SERVER_MESSAGE: 0,
+CLIENT_CARD: 1,
+CLIENT_CHAT: 2,
+CLIENT_STATE: 3,
+WIN_MESSAGE: 4,
+OVERVIEW_MESSAGE: 5,
+CLEAN_MESSAGE: 6,
+CLIENT_RESTART: 7,
+CLIENT_LOGOUT: 8
 };
 
 let Message = require('./message').Message;
@@ -14,12 +15,12 @@ let ScopaLogic = require('./scopaLogic').ScopaLogic;
 let scopaLogic = null;
 
 class Player {
-    constructor(aSocket) {
-        this.socket = aSocket;
-        this.id = this.id = "1" + Math.floor(Math.random() * 1000000000);
-        this.playerName = 'unnamed';
-        this.playerId = 'not set';
-    }
+constructor(aSocket) {
+    this.socket = aSocket;
+    this.id = this.id = "1" + Math.floor(Math.random() * 1000000000);
+    this.playerName = 'unnamed';
+    this.playerId = 'not set';
+}
 }
 
 // Raum in dem sich die Spieler befinsden.
@@ -27,8 +28,16 @@ class Room {
     constructor() {
         this.players = [];
     }
+    // Start des Spiels
+    inizializeGame() {
+            //  Pro Spiel gibt es eine Scopa-Logik (diese Verwaltet jeweils ein Duell)
+            if (this.players.length === 2) {
+                scopaLogic = new ScopaLogic(this);
+                scopaLogic.startGame();
+            }
+        }
 
-// Person ins Spiel einloggen
+    // Person ins Spiel einloggen
     addPlayer(aPlayer) {
         let _this = this;
         this.players.push(aPlayer);
@@ -38,33 +47,24 @@ class Room {
 
         // handle player closing
         aPlayer.socket.onclose = function () {
-            console.log("A connection left.");
-            //TODO: alle schliessen
             _this.removeAllPlayer();
+
+            let _data = {
+                messageType: MESSAGE_TYPE.CLIENT_LOGOUT,
+                content: aPlayer.name
+            };
+            _this.sendToPlayer(_data);
         }
     }
 
-// Gibt die Anzahl Spieler im Raum zurück.
+    // Gibt die Anzahl Spieler im Raum zurück.
     getPlayerCount() {
         return this.players.length;
     }
 
-    // Start des Spiels
-    inizializeGame() {
-        //  Pro Spiel gibt es eine Scopa-Logik (diese Verwaltet jeweils ein Duell)
-        if (this.players.length === 2) {
-            scopaLogic = new ScopaLogic(this);
-            scopaLogic.startGame();
-        }
-    }
-
-// Text Nachricht senden.
+    // Text Nachricht senden.
     sendWelcomeMessageData(aPlayer, room) {
-        let _playerDisplayName = aPlayer.id;
-        if (aPlayer.name) {
-            _playerDisplayName = aPlayer.name;
-        }
-        let message = "Wilkommen " + this.players.length + " zu Scopa. Aktuell eingeloggte Spieler: " + this.players.length;
+        let message = "Wilkommen zu Scopa. Aktuell eingeloggte Spieler: " + this.players.length;
         let _data = {
             messageType: MESSAGE_TYPE.CLIENT_CHAT,
             content: message
@@ -72,13 +72,7 @@ class Room {
         this.sendAll(JSON.stringify(_data));
     }
 
-// Spiel-Nachricht senden. (Karten auf Tisch/in der Hand,..)
-    sendGameData(player) {
-        let _message = scopaLogic.getGameStateMessage();
-        this.sendAll(JSON.stringify(_message));
-    }
-
-// Auf Client Nachrichten reagieren
+    // Auf Client Nachrichten reagieren
     handleOnPlayerMessage(player) {
         let _this = this;
 
@@ -108,7 +102,7 @@ class Room {
         });
     }
 
-// Löscht einen Spieler aus dem Spiel
+    // Löscht einen Spieler aus dem Spiel
     removePlayer(player) {
         // loop to find the player
         for (let i = this.players.length; i >= 0; i--) {
@@ -122,7 +116,7 @@ class Room {
         }
     }
 
-// Löscht einen Spieler aus dem Spiel
+    // Löscht einen Spieler aus dem Spiel
     removeAllPlayer() {
         if (this.players.length === 1) {
             return;
@@ -132,19 +126,17 @@ class Room {
             this.players.splice(i, 1);
         }
 
-        if (this.players.length === 0) {
-            scopaLogic = new ScopaLogic(this);
-        }
+        // TODO Ev raum löschen
     }
 
-// Nachricht an alle Spieler senden
+    // Nachricht an alle Spieler senden
     sendAll(message) {
         for (let i = 0, len = this.players.length; i < len; i++) {
             this.players[i].socket.send(message);
         }
     }
 
-// Nachricht an spezigischen Spieler senden
+    // Nachricht an spezigischen Spieler senden
     sendToPlayer(aMessage) {
 
         for (let i = 0, len = this.players.length; i < len; i++) {
