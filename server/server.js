@@ -1,5 +1,5 @@
 // Settings
-let port = process.env.PORT || 8000;
+let port = 3000;
 
 // Server code
 let WebSocketServer = require('ws').Server;
@@ -10,7 +10,7 @@ let Player = require('./game').Player;
 let room = new Room();
 let _rooms = [];
 
-// Server welcher Tische mit Spielern befüllt sobald 2 Spieler eingeloggt sind, kann ein Spiel gestartet werden
+// wss welcher Tische mit Spielern befüllt sobald 2 Spieler eingeloggt sind, kann ein Spiel gestartet werden
 server.on('connection', function(socket) {
 
     // Es gibt noch keine Räume
@@ -29,5 +29,5 @@ server.on('connection', function(socket) {
     }
 });
 
-console.log("WebSocket server is running.");
+console.log("WebSocket wss is running.");
 console.log("Listening to port " + port + ".");

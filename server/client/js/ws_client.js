@@ -1,6 +1,6 @@
-let websocket = null;
-let ip = "127.0.0.1";
-let port = "3000";
+var HOST = location.origin.replace(/^http/, 'ws')
+var ws = new WebSocket(HOST);
+var el;
 
 const MESSAGE_TYPE = {
     SERVER_MESSAGE: 0,
@@ -51,15 +51,15 @@ function startScopa() {
 
     // Überprüft auf Existenz von "WebSeockets" im Browser.
     if (window["WebSocket"]) {
-        websocket.socket = new WebSocket("ws://"+ip+":"+port);
+        ws.socket = new WebSocket("ws://"+ip+":"+port);
 
         // Problem bei Verbindungsaufbau
-        websocket.socket.onerror = function (e) {
+        ws.socket.onerror = function (e) {
             showErrorMessage(e)
         };
 
         // ErVerbindungsaufbau. Client meldet seine ID und seinen Namen.
-        websocket.socket.onopen = function (e) {
+        ws.socket.onopen = function (e) {
             // Login Fenster ausblenden
             $("#login").hide();
 
@@ -82,7 +82,7 @@ function startScopa() {
         };
 
         // on message event
-        websocket.socket.onmessage = function (e) {
+        ws.socket.onmessage = function (e) {
             let _data = JSON.parse(e.data);
 
             if (_data.messageType === MESSAGE_TYPE.SERVER_MESSAGE) {
@@ -106,7 +106,7 @@ function startScopa() {
         };
 
         //on close event
-        websocket.socket.onclose = function (e) {
+        ws.socket.onclose = function (e) {
 
             console.log('WebSocket connection closed');
         };
